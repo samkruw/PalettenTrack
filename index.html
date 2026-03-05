@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PalettenTrack Pro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;color:#e8eaf0;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+input,select{background:#0f1117;border:1px solid #2a3050;border-radius:7px;padding:8px 11px;color:#e8eaf0;font-size:13px;outline:none;width:100%;font-family:inherit}
+input:focus,select:focus{border-color:#f5a623;box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+select option{background:#1e2336}
+button{cursor:pointer;font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#181c27}
+::-webkit-scrollbar-thumb{background:#2a3050;border-radius:3px}
+#app{min-height:100vh;background:#0f1117}
+.header{background:#181c27;border-bottom:1px solid #2a3050;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100}
+.logo{font-weight:800;font-size:20px;display:flex;align-items:center;gap:6px}
+.logo-icon{color:#f5a623;font-size:22px}
+.logo-accent{color:#f5a623}
+.nav{background:#181c27;border-bottom:1px solid #2a3050;display:flex;overflow-x:auto}
+.nav-btn{background:none;border:none;border-bottom:3px solid transparent;padding:12px 16px;color:#8891b0;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;transition:all 0.15s}
+.nav-btn.active{border-bottom-color:#f5a623;color:#f5a623}
+.main{padding:1.5rem;max-width:1400px;margin:0 auto}
+.panel{background:#181c27;border:1px solid #2a3050;border-radius:10px;padding:1.4rem;margin-bottom:1.4rem}
+.section-title{font-weight:700;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#8891b0;margin-bottom:14px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#181c27;border:1px solid #2a3050;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.stat-card-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#4a5278;margin-bottom:4px}
+.stat-card-value{font-size:30px;font-weight:800;line-height:1}
+.stat-card-sub{font-size:11px;color:#8891b0;margin-top:3px}
+.stat-card-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:26px;opacity:0.07}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.btn{border:none;border-radius:7px;padding:8px 18px;font-weight:700;font-size:13px;cursor:pointer}
+.btn-primary{background:#f5a623;color:#000}
+.btn-secondary{background:#1e2336;color:#e8eaf0;border:1px solid #2a3050}
+.btn-danger{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.btn-export{background:#f0c419;color:#1a1a2e}
+.typ-btn{background:#1e2336;border:1px solid #2a3050;border-radius:7px;padding:7px 13px;color:#8891b0;font-weight:600;font-size:12px;cursor:pointer}
+.typ-btn.active-abholung{background:rgba(245,166,35,0.15);border-color:#f5a623;color:#f5a623}
+.typ-btn.active-retoure{background:rgba(239,68,68,0.15);border-color:#ef4444;color:#f87171}
+.typ-btn.active-produktion{background:rgba(16,185,129,0.15);border-color:#10b981;color:#34d399}
+.typ-btn.active-manuell{background:rgba(139,92,246,0.15);border-color:#8b5cf6;color:#a78bfa}
+.qty-box{background:#1e2336;border:1px solid #2a3050;border-radius:8px;padding:14px}
+table{width:100%;border-collapse:collapse}
+th{background:#1e2336;font-weight:700;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#4a5278;padding:9px 10px;text-align:left;border-bottom:1px solid #2a3050}
+td{padding:8px 10px;font-size:12px;border-top:1px solid #2a3050;vertical-align:middle}
+.table-wrap{overflow:auto;border-radius:10px;border:1px solid #2a3050;background:#181c27}
+.filter-bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-bar input{width:200px}
+.filter-bar select{width:180px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.sp-card{background:#181c27;border:1px solid #2a3050;border-radius:12px;padding:1.2rem;display:flex;flex-direction:column;gap:10px}
+.sp-card-info{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#8891b0;padding-top:8px;border-top:1px solid #2a3050}
+.retoure-box{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.schwund-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.schwund-card{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 12px;text-align:center}
+.bestand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.bestand-card{background:#181c27;border:1px solid #2a3050;border-radius:10px;padding:1.2rem}
+.bestand-rows{margin-top:10px;padding-top:10px;border-top:1px solid #2a3050;display:flex;flex-direction:column;gap:4px}
+.bestand-row{display:flex;justify-content:space-between;font-size:11px;color:#8891b0}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#181c27;border:1px solid #2a3050;border-radius:14px;padding:1.8rem;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.export-card{background:#1e2336;border:1px solid #2a3050;border-radius:10px;padding:14px 12px;cursor:pointer}
+.export-all{grid-column:1/-1;background:rgba(240,196,25,0.07);border:1px solid rgba(240,196,25,0.35);border-radius:10px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.notif{position:fixed;top:70px;right:20px;background:#1e2336;border:1px solid #2a3050;border-radius:8px;padding:10px 16px;font-size:13px;z-index:999;max-width:300px;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0f1117}
+.spinner{width:36px;height:36px;border:3px solid #2a3050;border-top:3px solid #f5a623;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hidden{display:none}
+label.lbl{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8891b0;display:block;margin-bottom:4px}
+.form-row{display:flex;gap:10px;margin-top:14px}
+.mb12{margin-bottom:12px}
+.mb14{margin-bottom:14px}
+.mb20{margin-bottom:20px}
+.monospace{font-family:monospace}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="loading-screen" id="loadingScreen">
+    <div class="logo-icon" style="font-size:36px">⬡</div>
+    <div style="font-size:18px;font-weight:700;color:#f5a623">PalettenTrack Pro</div>
+    <div style="font-size:13px;color:#8891b0">Verbinde mit Firebase...</div>
+    <div class="spinner"></div>
+  </div>
+  <div id="mainApp" class="hidden">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo"><span class="logo-icon">⬡</span>Paletten<span class="logo-accent">Track</span> Pro</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="syncBadge" style="display:flex;align-items:center;font-size:11px;color:#8891b0"><span class="sync-dot" id="syncDot" style="background:#f5a623;animation:pulse 1s infinite"></span><span id="syncText">Verbinde...</span></div>
+        <div style="background:#1e2336;border:1px solid #2a3050;border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:#8891b0" id="dateDisplay"></div>
+        <button class="btn btn-export" onclick="openExport()">⬇️ Power BI Export</button>
+      </div>
+    </div>
+    <!-- NAV -->
+    <div class="nav">
+      <button class="nav-btn active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+      <button class="nav-btn" onclick="showTab('buchung',this)">📋 Buchung</button>
+      <button class="nav-btn" onclick="showTab('bestand',this)">📦 Bestand</button>
+      <button class="nav-btn" onclick="showTab('verlauf',this)">📜 Verlauf</button>
+      <button class="nav-btn" onclick="showTab('spediteure',this)">🚚 Spediteure</button>
+    </div>
+    <!-- MAIN -->
+    <div class="main">
+      <!-- DASHBOARD -->
+      <div id="tab-dashboard">
+        <div class="grid-stats" id="statsGrid"></div>
+        <div style="background:#181c27;border:1px solid #2a3050;border-left:4px solid #ef4444;border-radius:10px;padding:14px 16px;margin-bottom:20px">
+          <div style="color:#ef4444;font-weight:700;font-size:13px;margin-bottom:12px">⚠️ Schwund bei Retoure</div>
+          <div class="schwund-grid" id="schwundGrid"></div>
+        </div>
+        <div class="section-title">📦 Aktueller Bestand</div>
+        <div class="bestand-grid" id="bestandCards"></div>
+        <div class="section-title">🕐 Letzte Buchungen</div>
+        <div class="table-wrap"><table><thead><tr><th>Datum/Zeit</th><th>Typ</th><th>Transporteur</th><th>Paletten</th><th>Rahmen</th><th>Deckel</th><th>Notiz</th></tr></thead><tbody id="recentTable"></tbody></table></div>
+      </div>
+      <!-- BUCHUNG -->
+      <div id="tab-buchung" class="hidden">
+        <div class="panel">
+          <div class="section-title">➕ Neue Buchung</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" id="typButtons"></div>
+          <div id="retoureBox" class="retoure-box hidden">
+            <div style="color:#ef4444;font-weight:700;font-size:12px;margin-bottom:10px">↩️ Erwartete Mengen (Schwund-Berechnung)</div>
+            <div class="grid-3">
+              <div><label class="lbl">Erw. Paletten</label><input type="number" min="0" id="erw_p" value="0"></div>
+              <div><label class="lbl">Erw. Rahmen</label><input type="number" min="0" id="erw_r" value="0"></div>
+              <div><label class="lbl">Erw. Deckel</label><input type="number" min="0" id="erw_d" value="0"></div>
+            </div>
+          </div>
+          <div class="grid-auto mb12">
+            <div><label class="lbl">Spediteur wählen</label><select id="spSelect" onchange="onSpSelect()"><option value="">— Aus Liste wählen —</option></select></div>
+            <div><label class="lbl">Transporteur / Fahrer</label><input id="b_transporteur" placeholder="Freitext"></div>
+            <div><label class="lbl">Kennzeichen / LKW</label><input id="b_kennzeichen" placeholder="ZH 123 456"></div>
+            <div><label class="lbl">Datum und Zeit</label><input type="datetime-local" id="b_datetime"></div>
+          </div>
+          <div class="qty-box mb12">
+            <div class="grid-3">
+              <div><label class="lbl" style="color:#f5a623">🟠 Paletten</label><input type="number" min="0" id="b_paletten" value="0" style="border-color:#f5a62355"></div>
+              <div><label class="lbl" style="color:#3b82f6">🔵 Rahmen</label><input type="number" min="0" id="b_rahmen" value="0" style="border-color:#3b82f655"></div>
+              <div><label class="lbl" style="color:#10b981">🟢 Deckel</label><input type="number" min="0" id="b_deckel" value="0" style="border-color:#10b98155"></div>
+            </div>
+          </div>
+          <div class="mb14"><label class="lbl">Notiz</label><input id="b_notiz" placeholder="Freitext..."></div>
+          <div class="form-row">
+            <button class="btn btn-primary" onclick="saveBuchung()">✓ Buchung speichern</button>
+            <button class="btn btn-secondary" onclick="resetBuchung()">✕ Reset</button>
+          </div>
+        </div>
+      </div>
+      <!-- BESTAND -->
+      <div id="tab-bestand" class="hidden">
+        <div class="bestand-grid" id="bestandCardsB"></div>
+        <div class="section-title">⚙️ Bestand manuell anpassen</div>
+        <div class="panel">
+          <div class="grid-auto mb14">
+            <div><label class="lbl">Artikel</label><select id="adj_typ"><option value="paletten">Paletten</option><option value="rahmen">Rahmen</option><option value="deckel">Deckel</option></select></div>
+            <div><label class="lbl">Aktion</label><select id="adj_aktion"><option value="add">Hinzufügen (+)</option><option value="sub">Abziehen (-)</option><option value="set">Setzen (=)</option></select></div>
+            <div><label class="lbl">Menge</label><input type="number" min="0" id="adj_menge" value="0"></div>
+            <div><label class="lbl">Grund</label><input id="adj_grund" placeholder="z.B. Inventur..."></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveAdjust()">✓ Anpassen</button>
+        </div>
+      </div>
+      <!-- VERLAUF -->
+      <div id="tab-verlauf" class="hidden">
+        <div class="filter-bar">
+          <input id="verlaufSearch" placeholder="Suche..." oninput="renderVerlauf()">
+          <select id="verlaufTyp" onchange="renderVerlauf()">
+            <option value="">Alle Typen</option>
+            <option value="abholung_intern">Abholung Intern</option>
+            <option value="abholung_extern">Abholung Extern</option>
+            <option value="retoure_intern">Retoure Intern</option>
+            <option value="retoure_extern">Retoure Extern</option>
+            <option value="produktion">Produktion</option>
+            <option value="manuell">Manuell</option>
+          </select>
+          <button class="btn btn-danger" onclick="clearAll()">🗑 Alle löschen</button>
+        </div>
+        <div class="table-wrap"><table style="min-width:900px"><thead><tr><th>Datum/Zeit</th><th>Typ</th><th>Transporteur</th><th>Kennzeichen</th><th>P</th><th>R</th><th>D</th><th>Schw.P</th><th>Schw.R</th><th>Schw.D</th><th>Notiz</th><th></th></tr></thead><tbody id="verlaufTable"></tbody></table></div>
+      </div>
+      <!-- SPEDITEURE -->
+      <div id="tab-spediteure" class="hidden">
+        <div class="panel">
+          <div class="section-title">➕ Neuer Spediteur</div>
+          <div class="grid-auto mb14">
+            <div><label class="lbl">Firmenname *</label><input id="sp_name" placeholder="z.B. DB Schenker AG"></div>
+            <div><label class="lbl">Typ</label><select id="sp_typ"><option value="extern">🚛 Extern (Spedition)</option><option value="intern">🔄 Intern</option></select></div>
+            <div><label class="lbl">Kontaktperson</label><input id="sp_kontakt" placeholder="Max Müller"></div>
+            <div><label class="lbl">Telefon</label><input id="sp_telefon" placeholder="+41 44 123 45 67"></div>
+            <div><label class="lbl">E-Mail</label><input id="sp_email" placeholder="info@firma.ch"></div>
+            <div><label class="lbl">Notiz</label><input id="sp_notiz" placeholder="Stammkunde..."></div>
+          </div>
+          <div class="form-row">
+            <button class="btn btn-primary" onclick="saveSpediteur()">✓ Spediteur speichern</button>
+            <button class="btn btn-secondary" onclick="resetSpediteur()">✕ Reset</button>
+          </div>
+        </div>
+        <div class="section-title" id="spCount">🚚 Gespeicherte Spediteure</div>
+        <div class="filter-bar">
+          <input id="spSearch" placeholder="Suche..." oninput="renderSpediteure()" style="width:200px">
+          <select id="spTypF" onchange="renderSpediteure()" style="width:160px"><option value="">Alle Typen</option><option value="extern">Extern</option><option value="intern">Intern</option></select>
+        </div>
+        <div class="sp-grid" id="spGrid"></div>
+      </div>
+    </div>
+  </div>
+  <!-- EXPORT MODAL -->
+  <div class="modal-overlay hidden" id="exportModal" onclick="if(event.target===this)closeExport()">
+    <div class="modal">
+      <div style="font-weight:800;font-size:18px;margin-bottom:6px">📊 Power BI Export</div>
+      <div style="font-size:12px;color:#8891b0;margin-bottom:18px;line-height:1.6">In Power BI: <strong style="color:#f5a623">Start → Daten abrufen → Text/CSV → Semikolon</strong></div>
+      <div class="export-grid">
+        <div class="export-card" onclick="exportCSV('buchungen')"><div style="font-size:22px;margin-bottom:5px">📋</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Buchungen</div><div style="font-size:11px;color:#8891b0">Alle Vorgänge inkl. Schwund</div></div>
+        <div class="export-card" onclick="exportCSV('bestand')"><div style="font-size:22px;margin-bottom:5px">📦</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Aktueller Bestand</div><div style="font-size:11px;color:#8891b0">Paletten, Rahmen, Deckel</div></div>
+        <div class="export-card" onclick="exportCSV('schwund')"><div style="font-size:22px;margin-bottom:5px">⚠️</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Schwund-Analyse</div><div style="font-size:11px;color:#8891b0">Nur Retouren mit Schwund</div></div>
+        <div class="export-card" onclick="exportCSV('spediteure')"><div style="font-size:22px;margin-bottom:5px">🚚</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Spediteure</div><div style="font-size:11px;color:#8891b0">Stammdaten und Buchungsanzahl</div></div>
+        <div class="export-all" onclick="exportAll()"><span style="font-size:22px">⬇️</span><div><div style="font-weight:700;font-size:13px;color:#f0c419">Alles exportieren (4 CSV)</div><div style="font-size:11px;color:#8891b0">Alle Tabellen auf einmal</div></div></div>
+      </div>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center" onclick="closeExport()">✕ Schliessen</button>
+    </div>
+  </div>
+  <!-- NOTIF -->
+  <div class="notif hidden" id="notif"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDgqI7aSWhZHmGrJyxFxKo0Uq87CZicnWk",
+  authDomain: "palettentracker.firebaseapp.com",
+  projectId: "palettentracker",
+  storageBucket: "palettentracker.firebasestorage.app",
+  messagingSenderId: "380579660889",
+  appId: "1:380579660889:web:0f984871cbea61c43a1d48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// STATE
+let buchungen = [];
+let spediteure = [];
+let bestand = {paletten:0, rahmen:0, deckel:0};
+let currentTyp = 'abholung_intern';
+
+const TYP_LABEL = {abholung_intern:'Abholung Intern',abholung_extern:'Abholung Extern',retoure_intern:'Retoure Intern',retoure_extern:'Retoure Extern',produktion:'Produktion',manuell:'Manuell'};
+const TYP_ICON = {abholung_intern:'🔄',abholung_extern:'🚛',retoure_intern:'↩️',retoure_extern:'↩️',produktion:'🏭',manuell:'✏️'};
+const TYP_COL = {abholung_intern:['rgba(59,130,246,0.15)','#60a5fa'],abholung_extern:['rgba(245,166,35,0.15)','#f5a623'],retoure_intern:['rgba(239,68,68,0.15)','#f87171'],retoure_extern:['rgba(239,68,68,0.15)','#f87171'],produktion:['rgba(16,185,129,0.15)','#34d399'],manuell:['rgba(139,92,246,0.15)','#a78bfa']};
+const COLS = {pal:'#f5a623',rah:'#3b82f6',dec:'#10b981',danger:'#ef4444',txt2:'#8891b0',txt3:'#4a5278',txt:'#e8eaf0'};
+
+function fmtDt(dt){if(!dt)return'—';return new Date(dt).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function localNow(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+function badge(typ){const[bg,col]=TYP_COL[typ]||['rgba(255,255,255,0.1)','#8891b0'];return `<span class="badge" style="background:${bg};color:${col}">${TYP_ICON[typ]} ${TYP_LABEL[typ]}</span>`;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function setSyncStatus(s){
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncText');
+  if(s==='online'){dot.style.background='#10b981';dot.style.animation='none';txt.textContent='Synchronisiert';}
+  else if(s==='offline'){dot.style.background='#ef4444';dot.style.animation='none';txt.textContent='Offline';}
+  else{dot.style.background='#f5a623';dot.style.animation='pulse 1s infinite';txt.textContent='Verbinde...';}
+}
+
+// INIT
+window.showTab=function(id,btn){
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
+  document.getElementById('tab-'+id).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(id==='verlauf')renderVerlauf();
+  if(id==='spediteure')renderSpediteure();
+  if(id==='bestand')renderBestandB();
+}
+
+// Render dashboard stats
+function renderDashboard(){
+  const ret=buchungen.filter(b=>b.typ&&b.typ.startsWith('retoure'));
+  const sp=ret.reduce((a,b)=>a+(b.schwund_p||0),0);
+  const sr=ret.reduce((a,b)=>a+(b.schwund_r||0),0);
+  const sd=ret.reduce((a,b)=>a+(b.schwund_d||0),0);
+  // Stats
+  const stats=[
+    ['Buchungen',buchungen.length,'Alle Vorgänge','📋','#f5a623'],
+    ['Abholungen',buchungen.filter(b=>b.typ&&b.typ.startsWith('abholung')).length,'Intern+Extern','🚛','#3b82f6'],
+    ['Retouren',ret.length,'Rückgaben','↩️','#10b981'],
+    ['Schwund Ges.',sp+sr+sd,'Bei Retouren','⚠️','#ef4444'],
+    ['Paletten',bestand.paletten,'Lagerbestand','⬡','#f5a623'],
+    ['Rahmen',bestand.rahmen,'Lagerbestand','▭','#3b82f6'],
+    ['Deckel',bestand.deckel,'Lagerbestand','◻','#10b981'],
+  ];
+  document.getElementById('statsGrid').innerHTML=stats.map(([l,v,s,i,c])=>`
+    <div class="stat-card" style="border-top:3px solid ${c}">
+      <div class="stat-card-label">${l}</div>
+      <div class="stat-card-value" style="color:${c}">${v}</div>
+      <div class="stat-card-sub">${s}</div>
+      <div class="stat-card-icon">${i}</div>
+    </div>`).join('');
+  // Schwund
+  document.getElementById('schwundGrid').innerHTML=[['🟠 Paletten',sp],['🔵 Rahmen',sr],['🟢 Deckel',sd],['⚠️ Gesamt',sp+sr+sd],['↩️ Retouren',ret.length]].map(([l,v])=>`
+    <div class="schwund-card"><div style="font-size:26px;font-weight:800;color:#ef4444">${v}</div><div style="font-size:11px;color:#8891b0;margin-top:2px">${l}</div></div>`).join('');
+  // Bestand cards
+  const keys=['paletten','rahmen','deckel'];
+  const names=[['Paletten',COLS.pal,'⬡'],['Rahmen',COLS.rah,'▭'],['Deckel',COLS.dec,'◻']];
+  document.getElementById('bestandCards').innerHTML=names.map(([name,col,icon],i)=>{
+    const k=keys[i];
+    const ab=buchungen.filter(b=>b.typ&&b.typ.startsWith('abholung')).reduce((a,b)=>a+(b[k]||0),0);
+    const re=ret.reduce((a,b)=>a+(b[k]||0),0);
+    const pr=buchungen.filter(b=>b.typ==='produktion').reduce((a,b)=>a+(b[k]||0),0);
+    return `<div class="bestand-card" style="border-top:4px solid ${col}">
+      <div style="color:${col};font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">${icon} ${name}</div>
+      <div style="font-size:44px;font-weight:800;color:${col};line-height:1">${bestand[k]}</div>
+      <div class="bestand-rows">
+        <div class="bestand-row"><span>🚛 Abgeholt</span><span class="monospace">${ab}</span></div>
+        <div class="bestand-row"><span>↩️ Retourniert</span><span class="monospace">${re}</span></div>
+        <div class="bestand-row"><span>🏭 Produktion</span><span class="monospace">${pr}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  // Recent
+  document.getElementById('recentTable').innerHTML=buchungen.slice(0,8).map(b=>`
+    <tr>
+      <td class="monospace" style="font-size:11px;white-space:nowrap">${fmtDt(b.datetime)}</td>
+      <td>${badge(b.typ)}</td>
+      <td>${esc(b.transporteur)}</td>
+      <td class="monospace" style="color:${COLS.pal}">${b.paletten||0}</td>
+      <td class="monospace" style="color:${COLS.rah}">${b.rahmen||0}</td>
+      <td class="monospace" style="color:${COLS.dec}">${b.deckel||0}</td>
+      <td style="font-size:11px;color:${COLS.txt2}">${esc(b.notiz)||'—'}</td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:#4a5278;padding:32px">Keine Buchungen</td></tr>';
+}
+
+function renderBestandB(){
+  const keys=['paletten','rahmen','deckel'];
+  const names=[['Paletten',COLS.pal,'⬡'],['Rahmen',COLS.rah,'▭'],['Deckel',COLS.dec,'◻']];
+  document.getElementById('bestandCardsB').innerHTML=names.map(([name,col,icon],i)=>`
+    <div class="bestand-card" style="border-top:4px solid ${col}">
+      <div style="color:${col};font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase">${icon} ${name}</div>
+      <div style="font-size:52px;font-weight:800;color:${col};line-height:1;margin:8px 0 4px">${bestand[keys[i]]}</div>
+      <div style="font-size:11px;color:#8891b0">Aktueller Lagerbestand</div>
+    </div>`).join('');
+}
+
+window.renderVerlauf=function(){
+  const s=(document.getElementById('verlaufSearch').value||'').toLowerCase();
+  const t=document.getElementById('verlaufTyp').value;
+  const filtered=buchungen.filter(b=>{
+    if(t&&b.typ!==t)return false;
+    if(s)return(b.transporteur||'').toLowerCase().includes(s)||(b.kennzeichen||'').toLowerCase().includes(s)||(b.notiz||'').toLowerCase().includes(s);
+    return true;
+  });
+  document.getElementById('verlaufTable').innerHTML=filtered.map(b=>`
+    <tr>
+      <td class="monospace" style="font-size:11px;white-space:nowrap">${fmtDt(b.datetime)}</td>
+      <td>${badge(b.typ)}</td>
+      <td>${esc(b.transporteur)}</td>
+      <td class="monospace" style="font-size:11px;color:${COLS.txt2}">${esc(b.kennzeichen)}</td>
+      <td class="monospace" style="color:${COLS.pal}">${b.paletten||0}</td>
+      <td class="monospace" style="color:${COLS.rah}">${b.rahmen||0}</td>
+      <td class="monospace" style="color:${COLS.dec}">${b.deckel||0}</td>
+      <td class="monospace" style="color:${(b.schwund_p||0)>0?COLS.danger:COLS.txt3}">${b.schwund_p||0}</td>
+      <td class="monospace" style="color:${(b.schwund_r||0)>0?COLS.danger:COLS.txt3}">${b.schwund_r||0}</td>
+      <td class="monospace" style="color:${(b.schwund_d||0)>0?COLS.danger:COLS.txt3}">${b.schwund_d||0}</td>
+      <td style="font-size:11px;color:${COLS.txt2}">${esc(b.notiz)||'—'}</td>
+      <td><button class="btn btn-danger" style="padding:3px 9px;font-size:12px" onclick="deleteBuchung('${b.id}')">🗑</button></td>
+    </tr>`).join('')||'<tr><td colspan="12" style="text-align:center;color:#4a5278;padding:32px">Keine Einträge</td></tr>';
+}
+
+window.renderSpediteure=function(){
+  const s=(document.getElementById('spSearch').value||'').toLowerCase();
+  const t=document.getElementById('spTypF').value;
+  const filtered=spediteure.filter(sp=>{
+    if(t&&sp.typ!==t)return false;
+    if(s)return(sp.name||'').toLowerCase().includes(s)||(sp.kontakt||'').toLowerCase().includes(s);
+    return true;
+  });
+  document.getElementById('spCount').textContent='🚚 Gespeicherte Spediteure ('+spediteure.length+')';
+  if(filtered.length===0){document.getElementById('spGrid').innerHTML='<div style="text-align:center;padding:40px;color:#4a5278;font-size:13px">🚚 Keine Spediteure vorhanden</div>';return;}
+  document.getElementById('spGrid').innerHTML=filtered.map(s=>{
+    const col=s.typ==='extern'?'#f5a623':'#3b82f6';
+    const bgCol=s.typ==='extern'?'rgba(245,166,35,0.15)':'rgba(59,130,246,0.15)';
+    const count=buchungen.filter(b=>b.transporteur===s.name).length;
+    return `<div class="sp-card" style="border-top:4px solid ${col}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">${esc(s.name)}</div>
+          <span class="badge" style="background:${bgCol};color:${col}">${s.typ==='extern'?'🚛 Extern':'🔄 Intern'}</span>
+        </div>
+        <span style="background:#1e2336;border:1px solid #2a3050;border-radius:10px;padding:2px 8px;font-size:11px;color:#8891b0;white-space:nowrap">${count} Buchungen</span>
+      </div>
+      <div class="sp-card-info">
+        ${s.kontakt?`<div>👤 ${esc(s.kontakt)}</div>`:''}
+        ${s.telefon?`<div>📞 ${esc(s.telefon)}</div>`:''}
+        ${s.email?`<div>✉️ ${esc(s.email)}</div>`:''}
+        ${s.notiz?`<div style="color:#4a5278;font-style:italic">💬 ${esc(s.notiz)}</div>`:''}
+      </div>
+      <button class="btn btn-danger" style="width:100%;padding:9px;font-size:13px" onclick="deleteSpediteur('${s.id}','${esc(s.name)}')">🗑 Spediteur löschen</button>
+    </div>`;
+  }).join('');
+}
+
+function updateSpSelect(){
+  const sel=document.getElementById('spSelect');
+  sel.innerHTML='<option value="">— Aus Liste wählen —</option>';
+  const ext=spediteure.filter(s=>s.typ==='extern');
+  const int=spediteure.filter(s=>s.typ==='intern');
+  if(ext.length){const g=document.createElement('optgroup');g.label='🚛 Extern';ext.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;g.appendChild(o);});sel.appendChild(g);}
+  if(int.length){const g=document.createElement('optgroup');g.label='🔄 Intern';int.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;g.appendChild(o);});sel.appendChild(g);}
+}
+
+// TYP BUTTONS
+const TYPS=[['abholung_intern','🔄 Abholung Intern','abholung'],['abholung_extern','🚛 Abholung Extern','abholung'],['retoure_intern','↩️ Retoure Intern','retoure'],['retoure_extern','↩️ Retoure Extern','retoure'],['produktion','🏭 Produktion','produktion'],['manuell','✏️ Manuell','manuell']];
+document.getElementById('typButtons').innerHTML=TYPS.map(([t,l,g])=>`<button class="typ-btn${t===currentTyp?' active-'+g:''}" onclick="setTyp('${t}','${g}',this)">${l}</button>`).join('');
+
+window.setTyp=function(t,g,btn){
+  currentTyp=t;
+  document.querySelectorAll('.typ-btn').forEach(b=>{b.className='typ-btn';});
+  btn.className='typ-btn active-'+g;
+  document.getElementById('retoureBox').classList.toggle('hidden',!t.startsWith('retoure'));
+}
+
+window.onSpSelect=function(){
+  const v=document.getElementById('spSelect').value;
+  if(v)document.getElementById('b_transporteur').value=v;
+}
+
+// SET DATETIME
+document.getElementById('b_datetime').value=localNow();
+document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+
+// SAVE BUCHUNG
+window.saveBuchung=async function(){
+  const p=parseInt(document.getElementById('b_paletten').value)||0;
+  const r=parseInt(document.getElementById('b_rahmen').value)||0;
+  const d=parseInt(document.getElementById('b_deckel').value)||0;
+  if(!p&&!r&&!d){showNotif('⚠️ Mindestens eine Menge eingeben!','warn');return;}
+  const isRet=currentTyp.startsWith('retoure');
+  const schwund_p=isRet?Math.max(0,(parseInt(document.getElementById('erw_p').value)||0)-p):0;
+  const schwund_r=isRet?Math.max(0,(parseInt(document.getElementById('erw_r').value)||0)-r):0;
+  const schwund_d=isRet?Math.max(0,(parseInt(document.getElementById('erw_d').value)||0)-d):0;
+  const entry={
+    typ:currentTyp,
+    transporteur:document.getElementById('b_transporteur').value||'',
+    kennzeichen:document.getElementById('b_kennzeichen').value||'',
+    datetime:document.getElementById('b_datetime').value||localNow(),
+    paletten:p,rahmen:r,deckel:d,
+    schwund_p,schwund_r,schwund_d,
+    notiz:document.getElementById('b_notiz').value||'',
+    createdAt:new Date().toISOString()
+  };
+  // Update bestand
+  const bRef=doc(db,'config','bestand');
+  const bSnap=await getDoc(bRef);
+  const cur=bSnap.exists()?bSnap.data():{paletten:0,rahmen:0,deckel:0};
+  const newB={...cur};
+  if(isRet||currentTyp==='manuell'){newB.paletten+=p;newB.rahmen+=r;newB.deckel+=d;}
+  else{newB.paletten-=p;newB.rahmen-=r;newB.deckel-=d;}
+  await setDoc(bRef,newB);
+  await addDoc(collection(db,'buchungen'),entry);
+  resetBuchung();
+  showNotif('✓ Buchung gespeichert und synchronisiert!');
+}
+
+window.resetBuchung=function(){
+  document.getElementById('b_transporteur').value='';
+  document.getElementById('b_kennzeichen').value='';
+  document.getElementById('b_datetime').value=localNow();
+  document.getElementById('b_paletten').value=0;
+  document.getElementById('b_rahmen').value=0;
+  document.getElementById('b_deckel').value=0;
+  document.getElementById('b_notiz').value='';
+  document.getElementById('erw_p').value=0;
+  document.getElementById('erw_r').value=0;
+  document.getElementById('erw_d').value=0;
+  document.getElementById('spSelect').value='';
+}
+
+window.saveAdjust=async function(){
+  const typ=document.getElementById('adj_typ').value;
+  const aktion=document.getElementById('adj_aktion').value;
+  const m=parseInt(document.getElementById('adj_menge').value)||0;
+  const grund=document.getElementById('adj_grund').value||'';
+  const bRef=doc(db,'config','bestand');
+  const bSnap=await getDoc(bRef);
+  const cur=bSnap.exists()?bSnap.data():{paletten:0,rahmen:0,deckel:0};
+  const newB={...cur};
+  if(aktion==='add')newB[typ]+=m;
+  else if(aktion==='sub')newB[typ]=Math.max(0,newB[typ]-m);
+  else newB[typ]=m;
+  await setDoc(bRef,newB);
+  await addDoc(collection(db,'buchungen'),{typ:'manuell',transporteur:'Manuell',kennzeichen:'—',datetime:localNow(),paletten:typ==='paletten'?m:0,rahmen:typ==='rahmen'?m:0,deckel:typ==='deckel'?m:0,schwund_p:0,schwund_r:0,schwund_d:0,notiz:grund||'Manuelle Anpassung',createdAt:new Date().toISOString()});
+  document.getElementById('adj_menge').value=0;
+  document.getElementById('adj_grund').value='';
+  showNotif('✓ Bestand angepasst und synchronisiert!');
+}
+
+window.saveSpediteur=async function(){
+  const name=document.getElementById('sp_name').value.trim();
+  if(!name){showNotif('⚠️ Firmenname ist Pflichtfeld!','warn');return;}
+  if(spediteure.find(s=>s.name.toLowerCase()===name.toLowerCase())){showNotif('⚠️ Spediteur existiert bereits!','warn');return;}
+  await addDoc(collection(db,'spediteure'),{
+    name,typ:document.getElementById('sp_typ').value,
+    kontakt:document.getElementById('sp_kontakt').value||'',
+    telefon:document.getElementById('sp_telefon').value||'',
+    email:document.getElementById('sp_email').value||'',
+    notiz:document.getElementById('sp_notiz').value||''
+  });
+  resetSpediteur();
+  showNotif('✓ "'+name+'" gespeichert!');
+}
+
+window.resetSpediteur=function(){
+  ['sp_name','sp_kontakt','sp_telefon','sp_email','sp_notiz'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sp_typ').value='extern';
+}
+
+window.deleteBuchung=async function(id){
+  await deleteDoc(doc(db,'buchungen',id));
+  showNotif('🗑 Buchung gelöscht');
+}
+
+window.deleteSpediteur=async function(id,name){
+  if(!confirm('Spediteur "'+name+'" wirklich löschen?'))return;
+  await deleteDoc(doc(db,'spediteure',id));
+  showNotif('🗑 Spediteur gelöscht');
+}
+
+window.clearAll=async function(){
+  if(!confirm('Wirklich alle Buchungen löschen?'))return;
+  const snap=await getDocs(collection(db,'buchungen'));
+  await Promise.all(snap.docs.map(d=>deleteDoc(doc(db,'buchungen',d.id))));
+  showNotif('🗑 Alle Buchungen gelöscht');
+}
+
+// EXPORT
+function toCSV(headers,rows){const esc=v=>{const s=v==null?'':String(v);return(s.includes(';')||s.includes('"'))?'"'+s.replace(/"/g,'""')+'"':s;};return[headers,...rows].map(r=>r.map(esc).join(';')).join('\r\n');}
+function dlCSV(fn,c){const b=new Blob(['\uFEFF'+c],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;a.click();URL.revokeObjectURL(a.href);}
+const today=()=>new Date().toISOString().slice(0,10);
+window.exportCSV=function(type){
+  if(type==='buchungen'){const rows=buchungen.map(b=>{const d=b.datetime?new Date(b.datetime):null;return[b.id,d?d.toLocaleDateString('de-CH'):'',d?d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}):'',b.typ,b.transporteur,b.kennzeichen,b.paletten,b.rahmen,b.deckel,b.schwund_p||0,b.schwund_r||0,b.schwund_d||0,b.notiz||''];});dlCSV('PalettenTrack_Buchungen_'+today()+'.csv',toCSV(['ID','Datum','Zeit','Typ','Transporteur','Kennzeichen','Paletten','Rahmen','Deckel','Schwund_P','Schwund_R','Schwund_D','Notiz'],rows));}
+  else if(type==='bestand'){dlCSV('PalettenTrack_Bestand_'+today()+'.csv',toCSV(['Artikel','Bestand','Exportdatum'],[['Paletten',bestand.paletten,today()],['Rahmen',bestand.rahmen,today()],['Deckel',bestand.deckel,today()]]));}
+  else if(type==='schwund'){const rows=buchungen.filter(b=>b.typ&&b.typ.startsWith('retoure')).map(b=>{const d=b.datetime?new Date(b.datetime):null;return[b.id,d?d.toLocaleDateString('de-CH'):'',b.typ,b.transporteur,b.kennzeichen,b.paletten,b.rahmen,b.deckel,b.schwund_p||0,b.schwund_r||0,b.schwund_d||0,(b.schwund_p||0)+(b.schwund_r||0)+(b.schwund_d||0),b.notiz||''];});dlCSV('PalettenTrack_Schwund_'+today()+'.csv',toCSV(['ID','Datum','Typ','Transporteur','Kennzeichen','Ret_P','Ret_R','Ret_D','Schw_P','Schw_R','Schw_D','Schw_Ges','Notiz'],rows));}
+  else if(type==='spediteure'){const rows=spediteure.map(s=>[s.id,s.name,s.typ,s.kontakt||'',s.telefon||'',s.email||'',buchungen.filter(b=>b.transporteur===s.name).length,s.notiz||'']);dlCSV('PalettenTrack_Spediteure_'+today()+'.csv',toCSV(['ID','Firmenname','Typ','Kontakt','Telefon','Email','Buchungen','Notiz'],rows));}
+}
+window.exportAll=function(){['buchungen','bestand','schwund','spediteure'].forEach((t,i)=>setTimeout(()=>exportCSV(t),i*400));}
+window.openExport=function(){document.getElementById('exportModal').classList.remove('hidden');}
+window.closeExport=function(){document.getElementById('exportModal').classList.add('hidden');}
+
+// NOTIF
+let notifTimer=null;
+function showNotif(msg,type){
+  const el=document.getElementById('notif');
+  el.textContent=msg;
+  el.style.borderLeftColor=type==='warn'?'#f59e0b':'#10b981';
+  el.classList.remove('hidden');
+  if(notifTimer)clearTimeout(notifTimer);
+  notifTimer=setTimeout(()=>el.classList.add('hidden'),3000);
+}
+window.showNotif=showNotif;
+
+// FIREBASE LISTENERS
+onSnapshot(collection(db,'buchungen'),(snap)=>{
+  buchungen=snap.docs.map(d=>({...d.data(),id:d.id}));
+  buchungen.sort((a,b)=>new Date(b.datetime||0)-new Date(a.datetime||0));
+  setSyncStatus('online');
+  renderDashboard();
+  if(!document.getElementById('tab-verlauf').classList.contains('hidden'))renderVerlauf();
+},()=>setSyncStatus('offline'));
+
+onSnapshot(collection(db,'spediteure'),(snap)=>{
+  spediteure=snap.docs.map(d=>({...d.data(),id:d.id}));
+  updateSpSelect();
+  if(!document.getElementById('tab-spediteure').classList.contains('hidden'))renderSpediteure();
+});
+
+onSnapshot(doc(db,'config','bestand'),(snap)=>{
+  bestand=snap.exists()?snap.data():{paletten:0,rahmen:0,deckel:0};
+  renderDashboard();
+  if(!document.getElementById('tab-bestand').classList.contains('hidden'))renderBestandB();
+});
+
+// SHOW APP
+document.getElementById('loadingScreen').classList.add('hidden');
+document.getElementById('mainApp').classList.remove('hidden');
+setSyncStatus('loading');
+</script>
+</body>
+</html>
