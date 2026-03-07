@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PalettenTrack Pro v2.1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fff;color:#1a1a1a;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+input,select{background:#fff;border:1px solid #d0d0d0;border-radius:7px;padding:8px 11px;color:#1a1a1a;font-size:13px;outline:none;width:100%;font-family:inherit}
+input:focus,select:focus{border-color:#cc2222;box-shadow:0 0 0 3px rgba(204,34,34,.1)}
+select option{background:#fff}
+button{cursor:pointer;font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#eee}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.header{background:#fff;border-bottom:1px solid #d0d0d0;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.nav{background:#fff;border-bottom:2px solid #d0d0d0;display:flex;overflow-x:auto}
+.nav-btn{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;color:#888;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;margin-bottom:-2px}
+.nav-btn.active{border-bottom-color:#cc2222;color:#cc2222}
+.main{padding:1.5rem;max-width:1200px;margin:0 auto}
+.panel{background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:1.4rem;margin-bottom:1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sec{font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:14px}
+.ga{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.gs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.sc{background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.btn{border:none;border-radius:7px;padding:9px 20px;font-weight:700;font-size:13px;cursor:pointer}
+.bp{background:#cc2222;color:#fff}
+.bs{background:#fff;color:#333;border:1px solid #d0d0d0}
+.bd{background:rgba(204,34,34,.08);color:#cc2222;border:1px solid rgba(204,34,34,.3)}
+.bg{background:#cc2222;color:#fff}
+.be{background:#cc2222;color:#fff}
+.qb{background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:14px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse}
+th{background:#fff;font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#999;padding:9px 10px;text-align:left;border-bottom:1px solid #d0d0d0}
+td{padding:8px 10px;font-size:12px;border-top:1px solid #ebebeb;vertical-align:middle}
+.tw{overflow:auto;border-radius:10px;border:1px solid #d0d0d0;background:#fff}
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.spg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.spc{background:#fff;border:1px solid #d0d0d0;border-radius:12px;padding:1.2rem;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.swg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.swc{background:rgba(204,34,34,.06);border:1px solid rgba(204,34,34,.2);border-radius:8px;padding:10px 12px;text-align:center}
+.bg2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.bc{background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.md{background:#fff;border:1px solid #d0d0d0;border-radius:14px;padding:1.8rem;width:100%;max-width:500px;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ec{background:#fff;border:1px solid #d0d0d0;border-radius:10px;padding:14px 12px;cursor:pointer}
+.ea{grid-column:1/-1;background:rgba(204,34,34,.06);border:1px solid rgba(204,34,34,.25);border-radius:10px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.notif{position:fixed;top:70px;right:20px;background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:12px 16px;font-size:13px;z-index:999;max-width:340px;box-shadow:0 4px 20px rgba(0,0,0,.12);display:none}
+.sd{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.ls{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#fff}
+.sp{width:36px;height:36px;border:3px solid #d0d0d0;border-top:3px solid #cc2222;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hidden{display:none}
+.L{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;display:block;margin-bottom:4px}
+.fr{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.mn{font-family:monospace}
+.kn{font-family:monospace;font-weight:700;color:#cc2222}
+.ib{background:#fff;border:1px solid #d0d0d0;border-radius:8px;padding:12px;margin-bottom:14px}
+.sb{background:rgba(204,34,34,.06);border:1px solid rgba(204,34,34,.2);border-radius:8px;padding:12px;margin-bottom:14px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+ <div class="ls" id="LS">
+  <div style="font-size:36px;color:#cc2222">&#x2B21;</div>
+  <div style="font-size:18px;font-weight:700;color:#cc2222">PalettenTrack Pro</div>
+  <div class="sp"></div>
+  <div style="font-size:13px;color:#888" id="LS_txt">Verbinde mit Firebase...</div>
+ </div>
+
+ <!-- LOGIN -->
+ <div class="ls hidden" id="LG" style="background:#fff">
+  <div style="background:#fff;border:1px solid #d0d0d0;border-radius:14px;padding:2rem;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,.1)">
+   <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:36px;color:#cc2222">&#x2B21;</div>
+    <div style="font-size:20px;font-weight:800;color:#cc2222;margin-top:6px">PalettenTrack Pro</div>
+    <div style="font-size:12px;color:#888;margin-top:4px">Bitte anmelden</div>
+   </div>
+   <div style="margin-bottom:12px">
+    <label class="L">E-Mail</label>
+    <input type="email" id="lg_email" placeholder="name@firma.ch" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <div style="margin-bottom:16px">
+    <label class="L">Passwort</label>
+    <input type="password" id="lg_pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+   </div>
+   <div id="lg_err" class="hidden" style="background:rgba(204,34,34,.08);border:1px solid rgba(204,34,34,.3);border-radius:7px;padding:8px 12px;font-size:12px;color:#cc2222;margin-bottom:12px"></div>
+   <button class="btn bp" style="width:100%;padding:11px;font-size:14px" onclick="doLogin()" id="lg_btn">Anmelden</button>
+  </div>
+ </div>
+ <div id="MA" class="hidden">
+  <div class="header">
+   <div style="font-weight:800;font-size:20px;display:flex;align-items:center;gap:6px">
+    <span style="color:#cc2222;font-size:22px">&#x2B21;</span>Paletten<span style="color:#cc2222">Track</span> Pro
+   </div>
+   <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;font-size:11px;color:#888">
+     <span class="sd" id="SD" style="background:#cc2222;animation:pulse 1s infinite"></span>
+     <span id="ST">Verbinde...</span>
+    </div>
+    <div style="background:#fff;border:1px solid #d0d0d0;border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:#888" id="DD"></div>
+    <span style="font-size:11px;color:#888;background:#f7f7f7;border:1px solid #d0d0d0;border-radius:6px;padding:4px 10px" id="user_info"></span>
+    <div style="display:flex;gap:4px"><button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button><button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button><button class="lang-btn" data-lang="it" onclick="setLang('it')">IT</button><button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button></div>
+    <button class="btn be" onclick="openExp()">&#x2B07;&#xFE0F; Power BI Export</button>
+    <button class="btn bd" style="padding:6px 12px;font-size:12px" onclick="doLogout()">&#x1F6AA; Abmelden</button>
+   </div>
+  </div>
+  <div class="nav">
+   <button class="nav-btn active" onclick="ST('dashboard',this)">&#x1F4CA; Dashboard</button>
+   <button class="nav-btn" onclick="ST('abholung',this)">&#x1F69B; Lieferung</button>
+   <button class="nav-btn" onclick="ST('retoure',this)">&#x21A9;&#xFE0F; Retoure</button>
+   <button class="nav-btn" onclick="ST('produktion',this)">&#x1F3ED; Produktion/R&#252;cklagerung</button>
+   <button class="nav-btn" onclick="ST('bestand',this)">&#x1F4E6; Bestand</button>
+   <button class="nav-btn" onclick="ST('verlauf',this)">&#x1F4DC; Verlauf</button>
+   <button class="nav-btn" onclick="ST('statistiken',this)">&#x1F4CA; Statistiken</button>
+   <button class="nav-btn" onclick="ST('spediteure',this)">&#x1F69A; Spediteure</button>
+  </div>
+  <div id="min_warn_banner" class="hidden" style="background:rgba(204,34,34,.08);border-bottom:2px solid #cc2222;padding:8px 1.5rem;display:flex;align-items:center;gap:10px;font-size:13px;color:#cc2222;font-weight:600">&#x26A0;&#xFE0F; <span id="min_warn_txt"></span></div>
+  <div class="main">
+
+   <!-- DASHBOARD -->
+   <div id="tab-dashboard">
+    <div class="gs" id="SG"></div>
+    <div style="background:#fff;border:1px solid #d0d0d0;border-left:4px solid #cc2222;border-radius:10px;padding:14px 16px;margin-bottom:20px">
+     <div style="color:#cc2222;font-weight:700;font-size:13px;margin-bottom:12px">&#x26A0;&#xFE0F; Schwund bei Retoure</div>
+     <div class="swg" id="SWG"></div>
+    </div>
+    <div class="sec">&#x1F4E6; Aktueller Bestand</div>
+    <div class="bg2" id="BCA"></div>
+    <div class="sec">&#x1F550; Letzte Buchungen</div>
+    <div class="tw">
+     <table><thead><tr><th>Datum/Zeit</th><th>Typ</th><th>Komm.-Nr.</th><th>Transporteur</th><th>P</th><th>R</th><th>D</th><th>Schwund</th><th>Notiz</th></tr></thead>
+     <tbody id="RT"></tbody></table>
+    </div>
+   </div>
+
+   <!-- ABHOLUNG -->
+   <div id="tab-abholung" class="hidden">
+    <div class="panel">
+     <div class="sec">&#x1F69B; Neue Lieferung</div>
+     <div class="ga" style="margin-bottom:14px">
+      <div><label class="L">Kommissions-Nr. (optional)</label><input id="a_nr" placeholder="z.B. K-001"></div>
+      <div><label class="L">Typ</label><select id="a_typ"><option value="abholung_extern">&#x1F69B; Extern</option><option value="abholung_intern">&#x1F504; Intern</option></select></div>
+      <div><label class="L">Spediteur</label><select id="a_sp" onchange="aSp()"><option value="">- Aus Liste -</option></select></div>
+      <div><label class="L">Transporteur / Fahrer</label><input id="a_tr" placeholder="Name oder Firma"></div>
+      <div><label class="L">Kennzeichen</label><input id="a_kz" placeholder="ZH 123 456"></div>
+      <div><label class="L">Datum und Zeit</label><input type="datetime-local" id="a_dt"></div>
+     </div>
+     <div class="qb">
+      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Gelieferte Mengen</div>
+      <div class="g3">
+       <div><label class="L" style="color:#cc2222">Paletten</label><input type="number" min="0" id="a_p" value="0" style="border-color:#cc222255"></div>
+       <div><label class="L" style="color:#555">Rahmen</label><input type="number" min="0" id="a_r" value="0" style="border-color:#55555"></div>
+       <div><label class="L" style="color:#444">Deckel</label><input type="number" min="0" id="a_d" value="0" style="border-color:#44455"></div>
+      </div>
+     </div>
+     <div style="margin-bottom:14px"><label class="L">Notiz</label><input id="a_no" placeholder="Freitext..."></div>
+
+     <!-- Fotos -->
+     <div style="margin-bottom:14px">
+      <label class="L" id="a_foto_lbl">Fotos (Schadensdokumentation)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">
+       <label style="display:flex;align-items:center;gap:6px;background:#f7f7f7;border:1px dashed #d0d0d0;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:12px;color:#888">
+        <span style="font-size:20px">📷</span> Foto hinzufügen
+        <input type="file" accept="image/*" multiple id="a_fotos" style="display:none" onchange="addFotos('a')">
+       </label>
+       <div id="a_foto_prev" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+     </div>
+     <!-- Unterschrift -->
+     <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+       <label class="L" id="a_sig_lbl" style="margin:0">Unterschrift</label>
+       <button class="btn bs" style="padding:3px 10px;font-size:11px" onclick="clearSig('a')">Löschen</button>
+      </div>
+      <canvas id="a_sig" class="canvas-sig" width="400" height="160"></canvas>
+     </div>
+     <div class="fr">
+      <button class="btn bp" onclick="saveA()">&#x2713; Lieferung speichern</button>
+      <button class="btn bs" onclick="resetA()">&#x2715; Reset</button>
+     </div>
+    </div>
+   </div>
+
+   <!-- RETOURE -->
+   <div id="tab-retoure" class="hidden">
+    <div class="panel">
+     <div class="sec">&#x21A9;&#xFE0F; Retoure erfassen</div>
+     <div style="margin-bottom:14px">
+      <label class="L">Kommissions-Nr. (automatischer Schwund)</label>
+      <select id="r_ks" onchange="rKom()" style="border-color:#cc222255;margin-bottom:10px"><option value="">- Keine Kommission (manuelle Eingabe) -</option></select>
+      <div id="r_pv" class="hidden ib">
+       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;font-weight:700;margin-bottom:8px">Urspr&#252;ngliche Lieferung</div>
+       <div class="g3" style="gap:8px;margin-bottom:8px">
+        <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:24px;font-weight:800;color:#cc2222" id="r_pp">0</div><div style="font-size:10px;color:#888">Paletten</div></div>
+        <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:24px;font-weight:800;color:#555" id="r_pr">0</div><div style="font-size:10px;color:#888">Rahmen</div></div>
+        <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:24px;font-weight:800;color:#444" id="r_pd">0</div><div style="font-size:10px;color:#888">Deckel</div></div>
+       </div>
+       <div style="font-size:11px;color:#888">&#x1F69B; <span id="r_ptr"></span> &nbsp;&middot;&nbsp; <span id="r_pkz"></span></div>
+       <div style="margin-top:6px;padding:6px 8px;background:rgba(204,34,34,.06);border-radius:5px;font-size:11px;color:#cc2222">&#x2193; Tats&#228;chlich retournierte Mengen eingeben &mdash; Schwund wird automatisch berechnet</div>
+      </div>
+      <div id="r_eb" class="hidden ib">
+       <div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:600">Erwartete Mengen (f&#252;r Schwund-Berechnung)</div>
+       <div class="g3">
+        <div><label class="L">Erw. Paletten</label><input type="number" min="0" id="r_ep" value="0" oninput="rSW()"></div>
+        <div><label class="L">Erw. Rahmen</label><input type="number" min="0" id="r_er" value="0" oninput="rSW()"></div>
+        <div><label class="L">Erw. Deckel</label><input type="number" min="0" id="r_ed" value="0" oninput="rSW()"></div>
+       </div>
+      </div>
+     </div>
+     <div class="ga" style="margin-bottom:14px">
+      <div><label class="L">Typ</label><select id="r_typ"><option value="retoure_extern">&#x21A9;&#xFE0F; Extern</option><option value="retoure_intern">&#x21A9;&#xFE0F; Intern</option></select></div>
+      <div><label class="L">Spediteur</label><select id="r_sp" onchange="rSp()"><option value="">- Aus Liste -</option></select></div>
+      <div><label class="L">Transporteur / Fahrer</label><input id="r_tr" placeholder="Name oder Firma"></div>
+      <div><label class="L">Kennzeichen</label><input id="r_kz" placeholder="ZH 123 456"></div>
+      <div><label class="L">Datum und Zeit</label><input type="datetime-local" id="r_dt"></div>
+     </div>
+     <div class="qb">
+      <div style="font-size:11px;font-weight:700;color:#cc2222;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Tats&#228;chlich retournierte Mengen</div>
+      <div class="g3">
+       <div><label class="L" style="color:#cc2222">Paletten</label><input type="number" min="0" id="r_p" value="0" style="border-color:#cc222255" oninput="rSW()"></div>
+       <div><label class="L" style="color:#555">Rahmen</label><input type="number" min="0" id="r_r" value="0" style="border-color:#55555" oninput="rSW()"></div>
+       <div><label class="L" style="color:#444">Deckel</label><input type="number" min="0" id="r_d" value="0" style="border-color:#44455" oninput="rSW()"></div>
+      </div>
+     </div>
+     <div id="r_sw" class="hidden sb">
+      <div style="font-size:11px;font-weight:700;color:#cc2222;margin-bottom:8px">&#x26A0;&#xFE0F; Berechneter Schwund</div>
+      <div class="g3" style="gap:8px">
+       <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:20px;font-weight:800;color:#cc2222" id="sw_p">0</div><div style="font-size:10px;color:#888">Paletten</div></div>
+       <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:20px;font-weight:800;color:#cc2222" id="sw_r">0</div><div style="font-size:10px;color:#888">Rahmen</div></div>
+       <div style="text-align:center;background:#fff;border-radius:6px;padding:8px"><div style="font-size:20px;font-weight:800;color:#cc2222" id="sw_d">0</div><div style="font-size:10px;color:#888">Deckel</div></div>
+      </div>
+     </div>
+     <div style="margin-bottom:14px"><label class="L">Notiz</label><input id="r_no" placeholder="Freitext..."></div>
+
+     <!-- Fotos -->
+     <div style="margin-bottom:14px">
+      <label class="L" id="r_foto_lbl">Fotos (Schadensdokumentation)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">
+       <label style="display:flex;align-items:center;gap:6px;background:#f7f7f7;border:1px dashed #d0d0d0;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:12px;color:#888">
+        <span style="font-size:20px">📷</span> Foto hinzufügen
+        <input type="file" accept="image/*" multiple id="r_fotos" style="display:none" onchange="addFotos('r')">
+       </label>
+       <div id="r_foto_prev" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+     </div>
+     <!-- Unterschrift -->
+     <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+       <label class="L" id="r_sig_lbl" style="margin:0">Unterschrift</label>
+       <button class="btn bs" style="padding:3px 10px;font-size:11px" onclick="clearSig('r')">Löschen</button>
+      </div>
+      <canvas id="r_sig" class="canvas-sig" width="400" height="160"></canvas>
+     </div>
+     <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(204,34,34,.06);border:1px solid rgba(204,34,34,.2);border-radius:8px">
+      <input type="checkbox" id="r_force" style="width:18px;height:18px;accent-color:#cc2222;cursor:pointer;flex-shrink:0">
+      <label for="r_force" style="font-size:13px;color:#cc2222;font-weight:600;cursor:pointer">Kommission trotz Schwund als <strong>Abgeschlossen</strong> markieren</label>
+     </div>
+     <div class="fr">
+      <button class="btn bg" onclick="saveR()">&#x2713; Retoure speichern</button>
+      <button class="btn bs" onclick="resetR()">&#x2715; Reset</button>
+     </div>
+    </div>
+   <div class="sec" id="OKT" style="margin-top:1.5rem">&#x1F4CB; Offene Kommissionen</div>
+   <div id="OKG" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+   </div>
+
+   <!-- PRODUKTION -->
+   <div id="tab-produktion" class="hidden">
+
+    <!-- Modus Toggle -->
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+     <button id="pr_btn_aus" class="btn bp" onclick="prModus('auslagerung')" style="flex:1;padding:13px;font-size:14px">&#x1F4E4; Auslagerung</button>
+     <button id="pr_btn_ruck" class="btn bs" onclick="prModus('ruecklagerung')" style="flex:1;padding:13px;font-size:14px">&#x1F4E5; R&#252;cklagerung</button>
+    </div>
+
+    <div class="panel">
+     <div class="sec" id="pr_title">&#x1F4E4; Auslagerung f&#252;r Produktion</div>
+
+     <!-- Info Banner -->
+     <div id="pr_info_aus" style="background:rgba(204,34,34,.06);border:1px solid rgba(204,34,34,.2);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#cc2222">
+      &#x26A0;&#xFE0F; Paletten verlassen das Lager f&#252;r die Produktion &mdash; Bestand wird reduziert
+     </div>
+     <div id="pr_info_ruck" class="hidden" style="background:rgba(42,160,42,.06);border:1px solid rgba(42,160,42,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#1a7a1a">
+      &#x2705; Paletten kehren aus der Produktion zur&#252;ck ins Lager &mdash; Bestand wird erh&#246;ht
+     </div>
+
+     <!-- Felder -->
+     <div class="ga" style="margin-bottom:14px">
+      <div><label class="L">Referenz / Auftrag</label><input id="pr_ref" placeholder="z.B. Prod-001"></div>
+      <div><label class="L">Datum und Zeit</label><input type="datetime-local" id="pr_dt"></div>
+     </div>
+
+     <!-- Mengen -->
+     <div class="qb" style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;color:#cc2222" id="pr_qb_title">Ausgelagerte Mengen</div>
+      <div class="g3">
+       <div><label class="L">Paletten</label><input type="number" min="0" id="pr_p" value="0"></div>
+       <div><label class="L">Rahmen</label><input type="number" min="0" id="pr_r" value="0"></div>
+       <div><label class="L">Deckel</label><input type="number" min="0" id="pr_d" value="0"></div>
+      </div>
+     </div>
+
+     <div style="margin-bottom:14px"><label class="L">Notiz</label><input id="pr_no" placeholder="Freitext..."></div>
+     <div class="fr">
+      <button class="btn bp" id="pr_save_btn" onclick="savePR()">&#x2713; Auslagerung speichern</button>
+      <button class="btn bs" onclick="resetPR()">&#x2715; Reset</button>
+     </div>
+    </div>
+
+    <!-- Offene Auslagerungen -->
+    <div class="panel">
+     <div class="sec">&#x1F4CB; Offene Auslagerungen (noch nicht zur&#252;ckgelagert)</div>
+     <div id="pr_offen" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
+      <div style="color:#aaa;font-size:13px">Keine offenen Auslagerungen</div>
+     </div>
+    </div>
+
+   </div>
+
+   <!-- BESTAND -->
+   <div id="tab-bestand" class="hidden">
+    <div class="bg2" id="BCB"></div>
+    <div class="sec">&#x26A0;&#xFE0F; Mindestbestand Warnung</div>
+    <div class="panel" style="margin-bottom:1.2rem">
+     <div class="ga" style="margin-bottom:12px">
+      <div><label class="L" id="min_lbl_p">Mindestbestand Paletten</label><input type="number" min="0" id="min_p" value="0" oninput="saveMinBestand()"></div>
+      <div><label class="L" id="min_lbl_r">Mindestbestand Rahmen</label><input type="number" min="0" id="min_r" value="0" oninput="saveMinBestand()"></div>
+      <div><label class="L" id="min_lbl_d">Mindestbestand Deckel</label><input type="number" min="0" id="min_d" value="0" oninput="saveMinBestand()"></div>
+     </div>
+     <div style="font-size:12px;color:#888">&#x2139;&#xFE0F; Bei Unterschreitung erscheint eine Warnung im Dashboard und oben in der App.</div>
+    </div>
+    <div class="sec">&#x2699;&#xFE0F; Bestand manuell anpassen</div>
+    <div class="panel">
+     <div class="ga" style="margin-bottom:14px">
+      <div><label class="L">Artikel</label><select id="adj_t"><option value="paletten">Paletten</option><option value="rahmen">Rahmen</option><option value="deckel">Deckel</option></select></div>
+      <div><label class="L">Aktion</label><select id="adj_a"><option value="add">Hinzuf&#252;gen (+)</option><option value="sub">Abziehen (-)</option><option value="set">Setzen (=)</option></select></div>
+      <div><label class="L">Menge</label><input type="number" min="0" id="adj_m" value="0"></div>
+      <div><label class="L">Grund</label><input id="adj_g" placeholder="z.B. Inventur..."></div>
+     </div>
+     <button class="btn bp" onclick="saveAdj()">&#x2713; Anpassen</button>
+    </div>
+   </div>
+
+   <!-- VERLAUF -->
+   <div id="tab-verlauf" class="hidden">
+    <div class="fb">
+     <input id="v_s" placeholder="Suche..." oninput="renderV()" style="width:200px">
+     <select id="v_t" onchange="renderV()" style="width:200px">
+      <option value="">Alle Typen</option>
+      <option value="abholung_intern">Lieferung Intern</option>
+      <option value="abholung_extern">Lieferung Extern</option>
+      <option value="retoure_intern">Retoure Intern</option>
+      <option value="retoure_extern">Retoure Extern</option>
+      <option value="produktion_aus">Auslagerung Produktion</option>
+      <option value="produktion_ruck">Rücklagerung Produktion</option>
+      <option value="manuell">Manuell</option>
+     </select>
+     <button class="btn bd" onclick="clearAll()">&#x1F5D1; Alle l&#246;schen</button>
+    </div>
+    <div class="tw">
+     <table style="min-width:1000px">
+      <thead><tr><th>Datum/Zeit</th><th>Typ</th><th>Komm.-Nr.</th><th>Transporteur</th><th>Kennzeichen</th><th>P</th><th>R</th><th>D</th><th>Schw.P</th><th>Schw.R</th><th>Schw.D</th><th>Notiz</th><th></th></tr></thead>
+      <tbody id="VT"></tbody>
+     </table>
+    </div>
+   </div>
+
+
+   <!-- STATISTIKEN -->
+   <div id="tab-statistiken" class="hidden">
+    <div class="panel">
+     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="sec" style="margin:0">&#x1F4CA; Statistiken &amp; Auswertungen</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+       <select id="st_jahr" onchange="renderStat()" style="width:100px">
+       </select>
+       <select id="st_monat" onchange="renderStat()" style="width:140px">
+        <option value="0">Ganzes Jahr</option>
+        <option value="1">Januar</option><option value="2">Februar</option>
+        <option value="3">M&#228;rz</option><option value="4">April</option>
+        <option value="5">Mai</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">Oktober</option>
+        <option value="11">November</option><option value="12">Dezember</option>
+       </select>
+       <button class="btn bp" onclick="exportPDF()">&#x1F4C4; PDF Bericht</button>
+      </div>
+     </div>
+
+     <!-- KPI Karten -->
+     <div id="st_kpi" class="gs" style="margin-bottom:20px"></div>
+
+     <!-- Charts -->
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="chartGrid">
+      <div class="panel" style="margin:0">
+       <div class="sec">Lieferungen &amp; Retouren pro Monat</div>
+       <canvas id="chartLR" height="200"></canvas>
+      </div>
+      <div class="panel" style="margin:0">
+       <div class="sec">Schwund pro Monat</div>
+       <canvas id="chartSW" height="200"></canvas>
+      </div>
+      <div class="panel" style="margin:0">
+       <div class="sec">Bestand Entwicklung</div>
+       <canvas id="chartBS" height="200"></canvas>
+      </div>
+      <div class="panel" style="margin:0">
+       <div class="sec">Top Spediteure</div>
+       <canvas id="chartSP" height="200"></canvas>
+      </div>
+     </div>
+
+     <!-- Schwund Tabelle -->
+     <div class="sec">&#x26A0;&#xFE0F; Schwund Details</div>
+     <div class="tw">
+      <table>
+       <thead><tr><th>Monat</th><th>Lieferungen</th><th>Retouren</th><th>Schw. Paletten</th><th>Schw. Rahmen</th><th>Schw. Deckel</th><th>Schw. Gesamt</th></tr></thead>
+       <tbody id="st_table"></tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+
+   <!-- SPEDITEURE -->
+   <div id="tab-spediteure" class="hidden">
+    <div class="panel">
+     <div class="sec">&#x2795; Neuer Spediteur</div>
+     <div class="ga" style="margin-bottom:14px">
+      <div><label class="L">Firmenname *</label><input id="sp_n" placeholder="z.B. DB Schenker AG"></div>
+      <div><label class="L">Typ</label><select id="sp_t"><option value="extern">&#x1F69B; Extern</option><option value="intern">&#x1F504; Intern</option></select></div>
+      <div><label class="L">Kontaktperson</label><input id="sp_k" placeholder="Max M&#252;ller"></div>
+      <div><label class="L">Telefon</label><input id="sp_te" placeholder="+41 44 123 45 67"></div>
+      <div><label class="L">E-Mail</label><input id="sp_e" placeholder="info@firma.ch"></div>
+      <div><label class="L">Notiz</label><input id="sp_no" placeholder="Stammkunde..."></div>
+     </div>
+     <div class="fr">
+      <button class="btn bp" onclick="saveSP()">&#x2713; Spediteur speichern</button>
+      <button class="btn bs" onclick="resetSP()">&#x2715; Reset</button>
+     </div>
+    </div>
+    <div class="sec" id="SPC">&#x1F69A; Spediteure</div>
+    <div class="fb">
+     <input id="sp_fs" placeholder="Suche..." oninput="renderSP()" style="width:200px">
+     <select id="sp_ft" onchange="renderSP()" style="width:160px"><option value="">Alle Typen</option><option value="extern">Extern</option><option value="intern">Intern</option></select>
+    </div>
+    <div class="spg" id="SPG"></div>
+   </div>
+
+  </div>
+ </div>
+
+ <!-- EXPORT MODAL -->
+ <div class="mo hidden" id="EXM" onclick="if(event.target===this)closeExp()">
+  <div class="md">
+   <div style="font-weight:800;font-size:18px;margin-bottom:6px">&#x1F4CA; Power BI Export</div>
+   <div style="font-size:12px;color:#888;margin-bottom:18px;line-height:1.6">In Power BI: <strong style="color:#cc2222">Start &#x2192; Daten abrufen &#x2192; Text/CSV &#x2192; Semikolon</strong></div>
+   <div class="eg">
+    <div class="ec" onclick="expCSV('buchungen')"><div style="font-size:22px;margin-bottom:5px">&#x1F4CB;</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Buchungen</div><div style="font-size:11px;color:#888">Alle Vorg&#228;nge inkl. Schwund</div></div>
+    <div class="ec" onclick="expCSV('kommissionen')"><div style="font-size:22px;margin-bottom:5px">&#x1F4E6;</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Kommissionen</div><div style="font-size:11px;color:#888">Mit Schwund-Auswertung</div></div>
+    <div class="ec" onclick="expCSV('bestand')"><div style="font-size:22px;margin-bottom:5px">&#x1F3D7;</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Bestand</div><div style="font-size:11px;color:#888">Aktueller Lagerbestand</div></div>
+    <div class="ec" onclick="expCSV('spediteure')"><div style="font-size:22px;margin-bottom:5px">&#x1F69A;</div><div style="font-weight:700;font-size:13px;margin-bottom:3px">Spediteure</div><div style="font-size:11px;color:#888">Stammdaten</div></div>
+    <div class="ea" onclick="expAll()"><span style="font-size:22px">&#x2B07;&#xFE0F;</span><div><div style="font-weight:700;font-size:13px;color:#f0c419">Alles exportieren (4 CSV)</div><div style="font-size:11px;color:#888">Alle Tabellen auf einmal</div></div></div>
+   </div>
+   <button class="btn bs" style="width:100%" onclick="closeExp()">&#x2715; Schliessen</button>
+  </div>
+ </div>
+ <div class="notif" id="NF"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, setDoc, getDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const FB = {
+  apiKey: "AIzaSyDgqI7aSWhZHmGrJyxFxKo0Uq87CZicnWk",
+  authDomain: "palettentracker.firebaseapp.com",
+  projectId: "palettentracker",
+  storageBucket: "palettentracker.firebasestorage.app",
+  messagingSenderId: "380579660889",
+  appId: "1:380579660889:web:0f984871cbea61c43a1d48"
+};
+const firebaseApp = initializeApp(FB);
+const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
+
+let BU=[], SP=[], KO=[], BS={paletten:0,rahmen:0,deckel:0};
+let minBS = {paletten:0, rahmen:0, deckel:0};
+
+const TL={abholung_intern:'Lieferung Intern',abholung_extern:'Lieferung Extern',retoure_intern:'Retoure Intern',retoure_extern:'Retoure Extern',produktion_aus:'Auslagerung Prod.',produktion_ruck:'Rücklagerung Prod.',manuell:'Manuell'};
+const TI={abholung_intern:'&#x1F504;',abholung_extern:'&#x1F69B;',retoure_intern:'&#x21A9;&#xFE0F;',retoure_extern:'&#x21A9;&#xFE0F;',produktion_aus:'&#x1F4E4;',produktion_ruck:'&#x1F4E5;',manuell:'&#x270F;&#xFE0F;'};
+const TC={abholung_intern:['rgba(80,80,80,.1)','#555'],abholung_extern:['rgba(204,34,34,.08)','#cc2222'],retoure_intern:['rgba(204,34,34,.08)','#f87171'],retoure_extern:['rgba(204,34,34,.08)','#f87171'],produktion_aus:['rgba(204,34,34,.1)','#cc2222'],produktion_ruck:['rgba(42,122,42,.1)','#2a7a2a'],manuell:['rgba(80,80,80,.1)','#a78bfa']};
+const PAL='#cc2222',RAH='#555',DEC='#888',DAN='#cc2222',T2='#888',T3='#bbb';
+
+function g(id){return document.getElementById(id);}
+function fdt(dt){if(!dt)return'&mdash;';return new Date(dt).toLocaleString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function now(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+function bdg(typ){const x=TC[typ]||['rgba(255,255,255,.1)','#888'];return '<span class="badge" style="background:'+x[0]+';color:'+x[1]+'">'+(TI[typ]||'')+' '+(TL[typ]||typ)+'</span>';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function iv(id){return parseInt(g(id).value)||0;}
+function sv(id){return g(id).value||'';}
+
+function sync(s){
+  const dot=g('SD'),txt=g('ST');
+  if(s==='on'){dot.style.background='#444';dot.style.animation='none';txt.textContent='Synchronisiert';}
+  else if(s==='off'){dot.style.background='#cc2222';dot.style.animation='none';txt.textContent='Offline';}
+  else{dot.style.background='#cc2222';dot.style.animation='pulse 1s infinite';txt.textContent='Verbinde...';}
+}
+
+let NT=null;
+function notif(msg,warn){
+  const el=g('NF');
+  el.textContent=msg;
+  el.style.borderLeft='4px solid '+(warn?'#cc2222':'#444');
+  el.style.display='block';
+  if(NT)clearTimeout(NT);
+  NT=setTimeout(()=>{el.style.display='none';},5000);
+}
+
+window.ST=function(id,btn){
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.classList.add('hidden'));
+  g('tab-'+id).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(id==='verlauf')renderV();
+  if(id==='spediteure')renderSP();
+  if(id==='bestand')renderBCB();
+  if(id==='retoure')renderOK();
+  if(id==='produktion')renderPrOffen();
+  if(id==='statistiken'){initStatJahr();renderStat();}
+}
+
+// ── SPEDITEUR SELECTS ──
+function spOpts(){
+  let h='<option value="">- Aus Liste -</option>';
+  const ex=SP.filter(s=>s.typ==='extern'),it=SP.filter(s=>s.typ==='intern');
+  if(ex.length){h+='<optgroup label="Extern">';ex.forEach(s=>{h+='<option value="'+esc(s.name)+'">'+esc(s.name)+'</option>';});h+='</optgroup>';}
+  if(it.length){h+='<optgroup label="Intern">';it.forEach(s=>{h+='<option value="'+esc(s.name)+'">'+esc(s.name)+'</option>';});h+='</optgroup>';}
+  return h;
+}
+function komOpts(){
+  const off=KO.filter(k=>k.status!=='abgeschlossen');
+  let h='<option value="">- Keine Kommission (manuelle Eingabe) -</option>';
+  off.forEach(k=>{h+='<option value="'+esc(k.nr)+'">'+esc(k.nr)+' - '+esc(k.transporteur||'?')+' (P:'+k.paletten+' R:'+k.rahmen+' D:'+k.deckel+')</option>';});
+  return h;
+}
+function updSelects(){
+  const s=spOpts();
+  g('a_sp').innerHTML=s;
+  g('r_sp').innerHTML=s;
+  g('pr_sp').innerHTML=s;
+  g('r_ks').innerHTML=komOpts();
+}
+
+// ── ABHOLUNG ──
+window.aSp=function(){const v=sv('a_sp');if(v)g('a_tr').value=v;}
+window.saveA=async function(){
+  const p=iv('a_p'),r=iv('a_r'),d=iv('a_d');
+  if(!p&&!r&&!d){notif('Mindestens eine Menge eingeben!',true);return;}
+  const nr=(g('a_nr').value||'').trim();
+  const typ=sv('a_typ'),tr=sv('a_tr'),kz=sv('a_kz'),dt=sv('a_dt')||now(),no=sv('a_no');
+  try{
+    const bRef=doc(db,'config','bestand');
+    const bs=await getDoc(bRef);
+    const cur=bs.exists()?bs.data():{paletten:0,rahmen:0,deckel:0};
+    await setDoc(bRef,{paletten:cur.paletten-p,rahmen:cur.rahmen-r,deckel:cur.deckel-d});
+    let kId='';
+    if(nr){
+      if(KO.find(k=>k.nr===nr)){notif('Kommissions-Nr. bereits vergeben!',true);return;}
+      const kRef=await addDoc(collection(db,'kommissionen'),{nr,status:'offen',transporteur:tr,kennzeichen:kz,datetime:dt,paletten:p,rahmen:r,deckel:d,ret_paletten:0,ret_rahmen:0,ret_deckel:0,notiz:no,createdAt:new Date().toISOString()});
+      kId=kRef.id;
+    }
+    const sigA=getSig('a');
+    await addDoc(collection(db,'buchungen'),{typ,transporteur:tr,kennzeichen:kz,datetime:dt,paletten:p,rahmen:r,deckel:d,schwund_p:0,schwund_r:0,schwund_d:0,notiz:no,kommNr:nr,kommId:kId,fotos:fotoData.a.slice(),unterschrift:sigA,createdAt:new Date().toISOString()});
+    resetFotoSig('a');
+    resetA();
+    notif('Lieferung gespeichert!'+(nr?' Komm.: '+nr:''));
+  }catch(e){notif('Fehler: '+e.message,true);console.error(e);}
+}
+window.resetA=function(){
+  ['a_nr','a_tr','a_kz','a_no'].forEach(id=>{g(id).value='';});
+  ['a_p','a_r','a_d'].forEach(id=>{g(id).value=0;});
+  g('a_dt').value=now();g('a_sp').value='';g('a_typ').value='abholung_extern';
+}
+
+// ── RETOURE ──
+window.rSp=function(){const v=sv('r_sp');if(v)g('r_tr').value=v;}
+window.rKom=function(){
+  const nr=sv('r_ks');
+  if(!nr){g('r_pv').classList.add('hidden');g('r_eb').classList.remove('hidden');rSW();return;}
+  g('r_eb').classList.add('hidden');
+  const k=KO.find(x=>x.nr===nr);
+  if(!k)return;
+  g('r_pv').classList.remove('hidden');
+  g('r_pp').textContent=k.paletten||0;
+  g('r_pr').textContent=k.rahmen||0;
+  g('r_pd').textContent=k.deckel||0;
+  g('r_ptr').textContent=k.transporteur||'--';
+  g('r_pkz').textContent=k.kennzeichen||'--';
+  g('r_tr').value=k.transporteur||'';
+  g('r_kz').value=k.kennzeichen||'';
+  g('r_p').value=k.paletten||0;
+  g('r_r').value=k.rahmen||0;
+  g('r_d').value=k.deckel||0;
+  g('r_ep').value=k.paletten||0;
+  g('r_er').value=k.rahmen||0;
+  g('r_ed').value=k.deckel||0;
+  rSW();
+}
+window.rSW=function(){
+  const ep=iv('r_ep'),er=iv('r_er'),ed=iv('r_ed');
+  const rp=iv('r_p'),rr=iv('r_r'),rd=iv('r_d');
+  const sp=Math.max(0,ep-rp),sr=Math.max(0,er-rr),sd=Math.max(0,ed-rd);
+  if(sp||sr||sd){
+    g('r_sw').classList.remove('hidden');
+    g('sw_p').textContent=sp;g('sw_r').textContent=sr;g('sw_d').textContent=sd;
+  }else{g('r_sw').classList.add('hidden');}
+}
+window.saveR=async function(){
+  const p=iv('r_p'),r=iv('r_r'),d=iv('r_d');
+  if(!p&&!r&&!d){notif('Mindestens eine Menge eingeben!',true);return;}
+  const komNr=sv('r_ks');
+  let ep=0,er=0,ed=0;
+  if(komNr){
+    const k=KO.find(x=>x.nr===komNr);
+    if(k){ep=k.paletten||0;er=k.rahmen||0;ed=k.deckel||0;}
+  }else{ep=iv('r_ep');er=iv('r_er');ed=iv('r_ed');}
+  const sp=Math.max(0,ep-p),sr=Math.max(0,er-r),sd=Math.max(0,ed-d);
+  const typ=sv('r_typ'),tr=sv('r_tr'),kz=sv('r_kz'),dt=sv('r_dt')||now(),no=sv('r_no');
+  try{
+    const bRef=doc(db,'config','bestand');
+    const bs=await getDoc(bRef);
+    const cur=bs.exists()?bs.data():{paletten:0,rahmen:0,deckel:0};
+    await setDoc(bRef,{paletten:cur.paletten+p,rahmen:cur.rahmen+r,deckel:cur.deckel+d});
+    if(komNr){
+      const k=KO.find(x=>x.nr===komNr);
+      if(k){
+        const rp2=(k.ret_paletten||0)+p,rr2=(k.ret_rahmen||0)+r,rd2=(k.ret_deckel||0)+d;
+        const forceClose = g('r_force').checked;
+        const done = forceClose || (rp2>=(k.paletten||0)&&rr2>=(k.rahmen||0)&&rd2>=(k.deckel||0));
+        await updateDoc(doc(db,'kommissionen',k.id),{ret_paletten:rp2,ret_rahmen:rr2,ret_deckel:rd2,status:done?'abgeschlossen':(rp2||rr2||rd2)?'teilweise':'offen'});
+      }
+    }
+    const sigR=getSig('r');
+    await addDoc(collection(db,'buchungen'),{typ,transporteur:tr,kennzeichen:kz,datetime:dt,paletten:p,rahmen:r,deckel:d,schwund_p:sp,schwund_r:sr,schwund_d:sd,notiz:no,kommNr:komNr,fotos:fotoData.r.slice(),unterschrift:sigR,createdAt:new Date().toISOString()});
+    resetFotoSig('r');
+    resetR();
+    let msg='Retoure gespeichert!';
+    if(komNr)msg+=' Komm.: '+komNr;
+    if(sp||sr||sd)msg+=' Schwund P:'+sp+' R:'+sr+' D:'+sd;
+    notif(msg);
+  }catch(e){notif('Fehler: '+e.message,true);console.error(e);}
+}
+window.resetR=function(){
+  ['r_tr','r_kz','r_no'].forEach(id=>{g(id).value='';});
+  ['r_p','r_r','r_d','r_ep','r_er','r_ed'].forEach(id=>{g(id).value=0;});
+  g('r_dt').value=now();g('r_sp').value='';g('r_ks').value='';
+  g('r_pv').classList.add('hidden');g('r_eb').classList.add('hidden');g('r_sw').classList.add('hidden');g('r_force').checked=false;
+}
+
+// ── PRODUKTION / AUSLAGERUNG / RÜCKLAGERUNG ──
+let prAktuellerModus = 'auslagerung';
+
+window.prModus = function(modus){
+  prAktuellerModus = modus;
+  const istAus = modus === 'auslagerung';
+  g('pr_btn_aus').className = istAus ? 'btn bp' : 'btn bs';
+  g('pr_btn_ruck').className = istAus ? 'btn bs' : 'btn bp';
+  g('pr_title').innerHTML = istAus ? '&#x1F4E4; Auslagerung f&#252;r Produktion' : '&#x1F4E5; R&#252;cklagerung';
+  g('pr_info_aus').classList.toggle('hidden', !istAus);
+  g('pr_info_ruck').classList.toggle('hidden', istAus);
+  g('pr_qb_title').textContent = istAus ? 'Ausgelagerte Mengen' : 'Zurückgelagerte Mengen';
+  g('pr_save_btn').textContent = istAus ? '✓ Auslagerung speichern' : '✓ Rücklagerung speichern';
+  g('pr_save_btn').style.background = istAus ? '#cc2222' : '#1a7a1a';
+}
+
+window.savePR = async function(){
+  const p=iv('pr_p'), r=iv('pr_r'), d=iv('pr_d');
+  if(!p && !r && !d){ notif('Mindestens eine Menge eingeben!', true); return; }
+  const ref=sv('pr_ref'), dt=sv('pr_dt')||now(), no=sv('pr_no');
+  const istAus = prAktuellerModus === 'auslagerung';
+  const typ = istAus ? 'produktion_aus' : 'produktion_ruck';
+  try{
+    const bRef = doc(db,'config','bestand');
+    const bs = await getDoc(bRef);
+    const cur = bs.exists() ? bs.data() : {paletten:0, rahmen:0, deckel:0};
+    if(istAus){
+      await setDoc(bRef, {paletten:cur.paletten-p, rahmen:cur.rahmen-r, deckel:cur.deckel-d});
+    } else {
+      await setDoc(bRef, {paletten:cur.paletten+p, rahmen:cur.rahmen+r, deckel:cur.deckel+d});
+    }
+    await addDoc(collection(db,'buchungen'), {
+      typ, transporteur:'', kennzeichen:ref, datetime:dt,
+      paletten:p, rahmen:r, deckel:d,
+      schwund_p:0, schwund_r:0, schwund_d:0,
+      notiz:no, kommNr:'', createdAt:new Date().toISOString()
+    });
+    notif(istAus ? 'Auslagerung gespeichert! -P:'+p+' -R:'+r+' -D:'+d : 'Rücklagerung gespeichert! +P:'+p+' +R:'+r+' +D:'+d);
+    resetPR();
+    renderPrOffen();
+  } catch(e){ notif('Fehler: '+e.message, true); console.error(e); }
+}
+
+window.resetPR = function(){
+  ['pr_ref','pr_no'].forEach(id=>{ g(id).value=''; });
+  ['pr_p','pr_r','pr_d'].forEach(id=>{ g(id).value=0; });
+  g('pr_dt').value = now();
+}
+
+function renderPrOffen(){
+  const el = g('pr_offen');
+  if(!el) return;
+  const aus  = BU.filter(b=>b.typ==='produktion_aus');
+  const ruck = BU.filter(b=>b.typ==='produktion_ruck');
+
+  // Group by Referenz, calculate net outstanding
+  const refMap = {};
+  aus.forEach(b=>{
+    const key = b.kennzeichen || b.transporteur || 'Unbekannt';
+    if(!refMap[key]) refMap[key] = {ref:key, tr:b.transporteur||'', dt:b.datetime, p:0, r:0, d:0};
+    refMap[key].p += b.paletten||0;
+    refMap[key].r += b.rahmen||0;
+    refMap[key].d += b.deckel||0;
+  });
+  ruck.forEach(b=>{
+    const key = b.kennzeichen || b.transporteur || 'Unbekannt';
+    if(refMap[key]){
+      refMap[key].p -= b.paletten||0;
+      refMap[key].r -= b.rahmen||0;
+      refMap[key].d -= b.deckel||0;
+    }
+  });
+
+  const offen = Object.values(refMap).filter(x=>x.p>0||x.r>0||x.d>0);
+  if(!offen.length){
+    el.innerHTML='<div style="color:#aaa;font-size:13px;padding:4px 0">Keine offenen Auslagerungen</div>';
+    return;
+  }
+  el.innerHTML = offen.map(x=>[
+    '<div style="background:#fff;border:1px solid #d0d0d0;border-left:3px solid #cc2222;border-radius:8px;padding:12px">',
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">',
+    '<span style="font-weight:700;font-size:13px">'+esc(x.ref)+'</span>',
+    '<span style="font-size:11px;color:#cc2222;font-weight:700;background:rgba(204,34,34,.08);padding:2px 8px;border-radius:4px">Ausstehend</span>',
+    '</div>',
+    x.tr ? '<div style="font-size:11px;color:#888;margin-bottom:8px">'+esc(x.tr)+' &middot; '+fdt(x.dt)+'</div>' : '<div style="font-size:11px;color:#888;margin-bottom:8px">'+fdt(x.dt)+'</div>',
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">',
+    '<div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Paletten</div><div style="font-size:16px;font-weight:700;color:#cc2222">'+x.p+'</div></div>',
+    '<div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Rahmen</div><div style="font-size:16px;font-weight:700;color:#555">'+x.r+'</div></div>',
+    '<div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Deckel</div><div style="font-size:16px;font-weight:700;color:#444">'+x.d+'</div></div>',
+    '</div></div>'
+  ].join('')).join('');
+}
+
+
+// ── CHART INSTANCES ──
+let chartLR=null, chartSW=null, chartBS=null, chartSP=null;
+
+function destroyCharts(){
+  [chartLR,chartSW,chartBS,chartSP].forEach(c=>{if(c)c.destroy();});
+}
+
+window.renderStat = function(){
+  const jahr = parseInt(g('st_jahr').value) || new Date().getFullYear();
+  const monat = parseInt(g('st_monat').value) || 0;
+
+  // Filter buchungen
+  let filtered = BU.filter(b=>{
+    if(!b.datetime) return false;
+    const d = new Date(b.datetime);
+    if(d.getFullYear() !== jahr) return false;
+    if(monat && d.getMonth()+1 !== monat) return false;
+    return true;
+  });
+
+  const lief = filtered.filter(b=>b.typ&&b.typ.startsWith('abholung'));
+  const ret  = filtered.filter(b=>b.typ&&b.typ.startsWith('retoure'));
+  const prod = filtered.filter(b=>b.typ==='produktion');
+
+  const swP = ret.reduce((a,b)=>a+(b.schwund_p||0),0);
+  const swR = ret.reduce((a,b)=>a+(b.schwund_r||0),0);
+  const swD = ret.reduce((a,b)=>a+(b.schwund_d||0),0);
+
+  // KPI
+  g('st_kpi').innerHTML = [
+    ['Lieferungen', lief.length, '#cc2222'],
+    ['Retouren', ret.length, '#555'],
+    ['Produktion', prod.length, '#444'],
+    ['Schwund Ges.', swP+swR+swD, '#cc2222'],
+    ['Schw. Paletten', swP, '#888'],
+    ['Schw. Rahmen', swR, '#888'],
+    ['Schw. Deckel', swD, '#888'],
+  ].map(x=>'<div class="sc" style="border-top:3px solid '+x[2]+'"><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:4px">'+x[0]+'</div><div style="font-size:28px;font-weight:800;color:'+x[2]+'">'+x[1]+'</div></div>').join('');
+
+  // Monthly breakdown
+  const months = monat ? [monat] : [1,2,3,4,5,6,7,8,9,10,11,12];
+  const mLabels = ['','Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+  const mLief=[],mRet=[],mSwP=[],mSwR=[],mSwD=[];
+  months.forEach(m=>{
+    const mb = BU.filter(b=>{if(!b.datetime)return false;const d=new Date(b.datetime);return d.getFullYear()===jahr&&d.getMonth()+1===m;});
+    mLief.push(mb.filter(b=>b.typ&&b.typ.startsWith('abholung')).length);
+    const mr=mb.filter(b=>b.typ&&b.typ.startsWith('retoure'));
+    mRet.push(mr.length);
+    mSwP.push(mr.reduce((a,b)=>a+(b.schwund_p||0),0));
+    mSwR.push(mr.reduce((a,b)=>a+(b.schwund_r||0),0));
+    mSwD.push(mr.reduce((a,b)=>a+(b.schwund_d||0),0));
+  });
+
+  const labels = months.map(m=>mLabels[m]);
+  destroyCharts();
+
+  // Chart 1: Lieferungen & Retouren
+  chartLR = new Chart(g('chartLR'), {type:'bar',data:{labels,datasets:[
+    {label:'Lieferungen',data:mLief,backgroundColor:'rgba(204,34,34,.7)',borderRadius:4},
+    {label:'Retouren',data:mRet,backgroundColor:'rgba(80,80,80,.5)',borderRadius:4}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  // Chart 2: Schwund
+  chartSW = new Chart(g('chartSW'), {type:'bar',data:{labels,datasets:[
+    {label:'Paletten',data:mSwP,backgroundColor:'rgba(204,34,34,.8)',borderRadius:4},
+    {label:'Rahmen',data:mSwR,backgroundColor:'rgba(100,100,100,.6)',borderRadius:4},
+    {label:'Deckel',data:mSwD,backgroundColor:'rgba(150,150,150,.5)',borderRadius:4}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,stacked:false}}}});
+
+  // Chart 3: Bestand (current)
+  chartBS = new Chart(g('chartBS'), {type:'doughnut',data:{
+    labels:['Paletten','Rahmen','Deckel'],
+    datasets:[{data:[BS.paletten,BS.rahmen,BS.deckel],backgroundColor:['rgba(204,34,34,.8)','rgba(100,100,100,.6)','rgba(180,180,180,.5)'],borderWidth:2}]
+  },options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+
+  // Chart 4: Top Spediteure
+  const spCount = {};
+  filtered.forEach(b=>{if(b.transporteur)spCount[b.transporteur]=(spCount[b.transporteur]||0)+1;});
+  const spSorted = Object.entries(spCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  chartSP = new Chart(g('chartSP'), {type:'bar',data:{
+    labels:spSorted.map(x=>x[0]),
+    datasets:[{label:'Buchungen',data:spSorted.map(x=>x[1]),backgroundColor:'rgba(204,34,34,.7)',borderRadius:4}]
+  },options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+
+  // Table
+  g('st_table').innerHTML = months.map((m,i)=>{
+    const tot = mSwP[i]+mSwR[i]+mSwD[i];
+    return '<tr><td><strong>'+mLabels[m]+'</strong></td><td>'+mLief[i]+'</td><td>'+mRet[i]+'</td><td style="color:'+(mSwP[i]>0?'#cc2222':'#aaa')+'">'+mSwP[i]+'</td><td style="color:'+(mSwR[i]>0?'#cc2222':'#aaa')+'">'+mSwR[i]+'</td><td style="color:'+(mSwD[i]>0?'#cc2222':'#aaa')+'">'+mSwD[i]+'</td><td style="font-weight:700;color:'+(tot>0?'#cc2222':'#aaa')+'">'+tot+'</td></tr>';
+  }).join('');
+}
+
+// ── PDF EXPORT ──
+window.exportPDF = function(){
+  const jahr = g('st_jahr').value || new Date().getFullYear();
+  const monatVal = parseInt(g('st_monat').value)||0;
+  const mLabels = ['','Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const periode = monatVal ? mLabels[monatVal]+' '+jahr : 'Jahr '+jahr;
+
+  const filtered = BU.filter(b=>{
+    if(!b.datetime)return false;
+    const d=new Date(b.datetime);
+    if(d.getFullYear()!==parseInt(jahr))return false;
+    if(monatVal && d.getMonth()+1!==monatVal)return false;
+    return true;
+  });
+
+  const lief=filtered.filter(b=>b.typ&&b.typ.startsWith('abholung'));
+  const ret=filtered.filter(b=>b.typ&&b.typ.startsWith('retoure'));
+  const swP=ret.reduce((a,b)=>a+(b.schwund_p||0),0);
+  const swR=ret.reduce((a,b)=>a+(b.schwund_r||0),0);
+  const swD=ret.reduce((a,b)=>a+(b.schwund_d||0),0);
+
+  const months=[1,2,3,4,5,6,7,8,9,10,11,12];
+  const mRows = months.map(m=>{
+    const mb=BU.filter(b=>{if(!b.datetime)return false;const d=new Date(b.datetime);return d.getFullYear()===parseInt(jahr)&&d.getMonth()+1===m;});
+    const ml=mb.filter(b=>b.typ&&b.typ.startsWith('abholung')).length;
+    const mr=mb.filter(b=>b.typ&&b.typ.startsWith('retoure'));
+    const sp=mr.reduce((a,b)=>a+(b.schwund_p||0),0);
+    const sr=mr.reduce((a,b)=>a+(b.schwund_r||0),0);
+    const sd=mr.reduce((a,b)=>a+(b.schwund_d||0),0);
+    const tot=sp+sr+sd;
+    return [
+      '<tr style="border-bottom:1px solid #eee">',
+      '<td style="padding:7px 10px">'+mLabels[m]+'</td>',
+      '<td style="padding:7px 10px;text-align:center">'+ml+'</td>',
+      '<td style="padding:7px 10px;text-align:center">'+mr.length+'</td>',
+      '<td style="padding:7px 10px;text-align:center;color:'+(sp>0?'#cc2222':'#aaa')+'">'+sp+'</td>',
+      '<td style="padding:7px 10px;text-align:center;color:'+(sr>0?'#cc2222':'#aaa')+'">'+sr+'</td>',
+      '<td style="padding:7px 10px;text-align:center;color:'+(sd>0?'#cc2222':'#aaa')+'">'+sd+'</td>',
+      '<td style="padding:7px 10px;text-align:center;font-weight:700;color:'+(tot>0?'#cc2222':'#aaa')+'">'+tot+'</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+
+  const detailRows = filtered.slice(0,50).map(b=>{
+    const d=b.datetime?new Date(b.datetime).toLocaleDateString('de-CH'):'--';
+    const sw=(b.schwund_p||0)+(b.schwund_r||0)+(b.schwund_d||0);
+    return [
+      '<tr style="border-bottom:1px solid #eee">',
+      '<td style="padding:5px 8px;font-size:11px">'+d+'</td>',
+      '<td style="padding:5px 8px;font-size:11px">'+(b.typ||'')+'</td>',
+      '<td style="padding:5px 8px;font-size:11px">'+(b.kommNr||'--')+'</td>',
+      '<td style="padding:5px 8px;font-size:11px">'+(b.transporteur||'')+'</td>',
+      '<td style="padding:5px 8px;text-align:center;font-size:11px">'+(b.paletten||0)+'</td>',
+      '<td style="padding:5px 8px;text-align:center;font-size:11px">'+(b.rahmen||0)+'</td>',
+      '<td style="padding:5px 8px;text-align:center;font-size:11px">'+(b.deckel||0)+'</td>',
+      '<td style="padding:5px 8px;text-align:center;font-size:11px;color:'+(sw>0?'#cc2222':'#aaa')+'">'+sw+'</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+
+  const css = [
+    'body{font-family:Segoe UI,sans-serif;color:#1a1a1a;margin:0;padding:24px}',
+    'h1{color:#cc2222;margin-bottom:4px}',
+    'h2{color:#555;font-size:13px;margin-bottom:20px;font-weight:400}',
+    '.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}',
+    '.kpi-card{border:1px solid #d0d0d0;border-radius:8px;padding:12px;border-top:3px solid #cc2222}',
+    '.kpi-val{font-size:28px;font-weight:800;color:#cc2222}',
+    '.kpi-lbl{font-size:10px;text-transform:uppercase;color:#888;letter-spacing:.08em}',
+    'table{width:100%;border-collapse:collapse}',
+    'th{background:#f7f7f7;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#888;letter-spacing:.08em}',
+    '.red{color:#cc2222}',
+    '.footer{margin-top:30px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px}',
+    '@media print{body{padding:12px}}'
+  ].join('');
+
+  const kpiHtml = [
+    ['Lieferungen', lief.length],
+    ['Retouren', ret.length],
+    ['Schwund Gesamt', swP+swR+swD],
+    ['Bestand', 'P:'+BS.paletten+' R:'+BS.rahmen+' D:'+BS.deckel]
+  ].map(x=>'<div class="kpi-card"><div class="kpi-lbl">'+x[0]+'</div><div class="kpi-val">'+x[1]+'</div></div>').join('');
+
+  const parts = [
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">',
+    '<title>PalettenTrack '+periode+'</title>',
+    '<style>'+css+'</style></head><body>',
+    '<h1>&#x2B21; PalettenTrack Pro</h1>',
+    '<h2>Bericht: '+periode+'</h2>',
+    '<div class="kpi">'+kpiHtml+'</div>',
+    '<h3 style="margin-bottom:8px">Monats&#252;bersicht</h3>',
+    '<table><thead><tr><th>Monat</th><th>Lieferungen</th><th>Retouren</th><th>Schw.P</th><th>Schw.R</th><th>Schw.D</th><th>Schw.Ges.</th></tr></thead>',
+    '<tbody>'+mRows+'</tbody></table>',
+    '<h3 style="margin:20px 0 8px">Buchungsdetails (max. 50)</h3>',
+    '<table><thead><tr><th>Datum</th><th>Typ</th><th>Komm.Nr</th><th>Transporteur</th><th>P</th><th>R</th><th>D</th><th>Schwund</th></tr></thead>',
+    '<tbody>'+detailRows+'</tbody></table>',
+    '<div class="footer">Erstellt: '+new Date().toLocaleString('de-CH')+' | PalettenTrack Pro</div>',
+    '<'+'script>window.onload=function(){window.print();}<'+'/script>',
+    '</body></html>'
+  ];
+
+  const html = parts.join('');
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// Init Statistiken Jahr-Dropdown
+function initStatJahr(){
+  const jahre = [...new Set(BU.map(b=>b.datetime?new Date(b.datetime).getFullYear():null).filter(Boolean))];
+  const cur = new Date().getFullYear();
+  if(!jahre.includes(cur)) jahre.push(cur);
+  jahre.sort((a,b)=>b-a);
+  const sel = g('st_jahr');
+  if(sel) sel.innerHTML = jahre.map(j=>'<option value="'+j+'"'+(j===cur?' selected':'')+'>'+j+'</option>').join('');
+}
+
+
+// ── MINDESTBESTAND ──
+function loadMinBestand(){
+  minBS.paletten = parseInt(localStorage.getItem('min_p'))||0;
+  minBS.rahmen   = parseInt(localStorage.getItem('min_r'))||0;
+  minBS.deckel   = parseInt(localStorage.getItem('min_d'))||0;
+  const mp=g('min_p'), mr=g('min_r'), md=g('min_d');
+  if(mp) mp.value = minBS.paletten;
+  if(mr) mr.value = minBS.rahmen;
+  if(md) md.value = minBS.deckel;
+  checkMinBestand();
+}
+window.saveMinBestand = function(){
+  minBS.paletten = parseInt(g('min_p').value)||0;
+  minBS.rahmen   = parseInt(g('min_r').value)||0;
+  minBS.deckel   = parseInt(g('min_d').value)||0;
+  localStorage.setItem('min_p', minBS.paletten);
+  localStorage.setItem('min_r', minBS.rahmen);
+  localStorage.setItem('min_d', minBS.deckel);
+  checkMinBestand();
+}
+function checkMinBestand(){
+  const warns = [];
+  if(minBS.paletten>0 && BS.paletten<minBS.paletten) warns.push('Paletten: '+BS.paletten+' < '+minBS.paletten);
+  if(minBS.rahmen>0   && BS.rahmen<minBS.rahmen)     warns.push('Rahmen: '+BS.rahmen+' < '+minBS.rahmen);
+  if(minBS.deckel>0   && BS.deckel<minBS.deckel)     warns.push('Deckel: '+BS.deckel+' < '+minBS.deckel);
+  const banner = g('min_warn_banner');
+  const txt    = g('min_warn_txt');
+  if(!banner||!txt) return;
+  if(warns.length){
+    txt.textContent = '⚠️ Mindestbestand unterschritten: ' + warns.join(' | ');
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+
+// ── SPRACHE ──
+
+const LANG = {
+  de:{nav_dash:'Dashboard',nav_lief:'Lieferung',nav_ret:'Retoure',nav_prod:'Produktion/Rücklagerung',nav_bes:'Bestand',nav_ver:'Verlauf',nav_stat:'Statistiken',nav_sp:'Spediteure',min_pal:'Mindestbestand Paletten',min_rah:'Mindestbestand Rahmen',min_dec:'Mindestbestand Deckel'},
+  fr:{nav_dash:'Tableau de bord',nav_lief:'Livraison',nav_ret:'Retour',nav_prod:'Production',nav_bes:'Stock',nav_ver:'Historique',nav_stat:'Statistiques',nav_sp:'Transporteurs',min_pal:'Stock min. Palettes',min_rah:'Stock min. Cadres',min_dec:'Stock min. Couvercles'},
+  it:{nav_dash:'Dashboard',nav_lief:'Consegna',nav_ret:'Reso',nav_prod:'Produzione',nav_bes:'Magazzino',nav_ver:'Storico',nav_stat:'Statistiche',nav_sp:'Spedizionieri',min_pal:'Scorta min. Pallet',min_rah:'Scorta min. Telai',min_dec:'Scorta min. Coperchi'},
+  en:{nav_dash:'Dashboard',nav_lief:'Delivery',nav_ret:'Return',nav_prod:'Production',nav_bes:'Stock',nav_ver:'History',nav_stat:'Statistics',nav_sp:'Carriers',min_pal:'Min. stock Pallets',min_rah:'Min. stock Frames',min_dec:'Min. stock Lids'}
+};
+let curLang = localStorage.getItem('pt_lang')||'de';
+function t(key){return (LANG[curLang]&&LANG[curLang][key])||LANG.de[key]||key;}
+window.setLang = function(l){
+  curLang=l; localStorage.setItem('pt_lang',l);
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+  applyLang();
+}
+function applyLang(){
+  const navMap={dashboard:'nav_dash',abholung:'nav_lief',retoure:'nav_ret',produktion:'nav_prod',bestand:'nav_bes',verlauf:'nav_ver',statistiken:'nav_stat',spediteure:'nav_sp'};
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    const oc=btn.getAttribute('onclick')||'';
+    const mi=oc.indexOf("ST('");
+    if(mi>=0){const id=oc.slice(mi+4,oc.indexOf("'",mi+4));if(navMap[id])btn.textContent=t(navMap[id]);}
+  });
+  const mr=g('min_lbl_r');if(mr)mr.textContent=t('min_rah');
+  const md=g('min_lbl_d');if(md)md.textContent=t('min_dec');
+}
+
+// INIT
+g('a_dt').value=now();g('r_dt').value=now();g('pr_dt').value=now();
+initSig('a');initSig('r');
+loadMinBestand();
+applyLang();
+g('DD').textContent=new Date().toLocaleDateString('de-CH',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+
+function updLS(){
+  const el=g('LS_txt');if(!el)return;
+  const done=[loaded.bu,loaded.ko,loaded.sp,loaded.bs].filter(Boolean).length;
+  el.textContent='Lade Daten... ('+done+'/4)';
+}
+
+// ── FOTO UPLOAD ──
+const fotoData = {a:[], r:[]};
+window.addFotos = function(prefix){
+  const input = g(prefix+'_fotos');
+  const prev  = g(prefix+'_foto_prev');
+  Array.from(input.files).forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      fotoData[prefix].push(e.target.result);
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = 'foto-prev';
+      img.title = 'Klicken zum Entfernen';
+      const idx = fotoData[prefix].length-1;
+      img.onclick = ()=>{
+        fotoData[prefix].splice(idx,1);
+        img.remove();
+      };
+      prev.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+// ── UNTERSCHRIFT (Canvas) ──
+function initSig(prefix){
+  const canvas = g(prefix+'_sig');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let drawing = false, lx=0, ly=0;
+  function pos(e){
+    const r=canvas.getBoundingClientRect();
+    if(e.touches) return {x:(e.touches[0].clientX-r.left)*(canvas.width/r.width), y:(e.touches[0].clientY-r.top)*(canvas.height/r.height)};
+    return {x:(e.clientX-r.left)*(canvas.width/r.width), y:(e.clientY-r.top)*(canvas.height/r.height)};
+  }
+  canvas.addEventListener('mousedown', e=>{drawing=true;const p=pos(e);lx=p.x;ly=p.y;});
+  canvas.addEventListener('mousemove', e=>{if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();lx=p.x;ly=p.y;});
+  canvas.addEventListener('mouseup', ()=>drawing=false);
+  canvas.addEventListener('mouseleave', ()=>drawing=false);
+  canvas.addEventListener('touchstart', e=>{e.preventDefault();drawing=true;const p=pos(e);lx=p.x;ly=p.y;},{passive:false});
+  canvas.addEventListener('touchmove', e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
+  canvas.addEventListener('touchend', ()=>drawing=false);
+}
+window.clearSig = function(prefix){
+  const canvas=g(prefix+'_sig');
+  if(canvas) canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+}
+function getSig(prefix){
+  const canvas=g(prefix+'_sig');
+  if(!canvas) return '';
+  const ctx=canvas.getContext('2d');
+  const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  const hasContent=Array.from(data).some((v,i)=>i%4===3&&v>0);
+  return hasContent ? canvas.toDataURL('image/png') : '';
+}
+function resetFotoSig(prefix){
+  fotoData[prefix]=[];
+  const prev=g(prefix+'_foto_prev');
+  if(prev)prev.innerHTML='';
+  clearSig(prefix);
+}
+
+// ── APP STATE ──
+let loaded = {bu:false, ko:false, sp:false, bs:false};
+let unsubs = [];
+
+function checkReady(){
+  if(loaded.bu && loaded.ko && loaded.sp && loaded.bs){
+    g('LS').style.display='none';
+    g('app').style.display='block';
+    renderDash();
+    updSelects();
+    initStatJahr();
+  }
+}
+
+// ── DASHBOARD ──
+function renderDash(){
+  // Bestand cards
+  const bca = g('BCA');
+  if(bca) bca.innerHTML = [
+    ['Paletten', BS.paletten, PAL, '&#x2B21;'],
+    ['Rahmen',   BS.rahmen,   RAH, '&#x25AD;'],
+    ['Deckel',   BS.deckel,   DEC, '&#x25FB;']
+  ].map((x,i)=>'<div class="sc" style="border-top:3px solid '+x[2]+'"><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:4px">'+x[0]+'</div><div style="font-size:32px;font-weight:800;color:'+x[2]+'">'+x[1]+'</div><div style="position:absolute;right:14px;top:14px;font-size:22px;opacity:.15">'+x[3]+'</div></div>').join('');
+
+  // Recent bookings
+  const rt = g('RT');
+  if(rt) rt.innerHTML = BU.slice(0,10).map(b=>{
+    const sw=(b.schwund_p||0)+(b.schwund_r||0)+(b.schwund_d||0);
+    return '<tr><td>'+bdg(b.typ)+'</td><td>'+(b.kommNr?'<span style="font-size:11px;font-weight:700;color:#cc2222">'+esc(b.kommNr)+'</span>':'<span style="color:#aaa">&mdash;</span>')+'</td><td>'+esc(b.transporteur||'')+'</td><td>'+esc(b.kennzeichen||'')+'</td><td style="text-align:center">'+(b.paletten||0)+'</td><td style="text-align:center">'+(b.rahmen||0)+'</td><td style="text-align:center">'+(b.deckel||0)+'</td><td style="text-align:center;color:'+(sw>0?'#cc2222':'#aaa')+'">'+sw+'</td><td style="color:#aaa;font-size:11px">'+fdt(b.datetime)+'</td></tr>';
+  }).join('')||'<tr><td colspan="9" style="text-align:center;color:#aaa;padding:32px">Keine Buchungen</td></tr>';
+
+  // Offene Kommissionen on dashboard
+  const off = KO.filter(k=>k.status!=='abgeschlossen');
+  const okg = g('OKG');
+  if(okg) okg.innerHTML = off.map(k=>'<div class="bc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:#cc2222">'+esc(k.nr)+'</span><span class="badge" style="background:rgba(204,34,34,.1);color:#cc2222">Offen</span></div><div style="font-size:12px;color:#888">'+esc(k.transporteur||'')+'</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:4px"><div style="font-size:10px;color:#aaa">P</div><div style="font-weight:700">'+k.paletten+'</div></div><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:4px"><div style="font-size:10px;color:#aaa">R</div><div style="font-weight:700">'+k.rahmen+'</div></div><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:4px"><div style="font-size:10px;color:#aaa">D</div><div style="font-weight:700">'+k.deckel+'</div></div></div></div>').join('')||'<div style="color:#aaa;font-size:13px">Keine offenen Kommissionen</div>';
+
+  checkMinBestand();
+}
+
+// ── BESTAND CARDS (Bestand Tab) ──
+function renderBCB(){
+  const el = g('BCB');
+  if(!el) return;
+  el.innerHTML = [
+    ['Paletten', BS.paletten, PAL, '&#x2B21;'],
+    ['Rahmen',   BS.rahmen,   RAH, '&#x25AD;'],
+    ['Deckel',   BS.deckel,   DEC, '&#x25FB;']
+  ].map(x=>'<div class="bc"><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:6px">'+x[0]+'</div><div style="font-size:36px;font-weight:800;color:'+x[2]+'">'+x[1]+'</div></div>').join('');
+}
+
+// ── VERLAUF ──
+window.renderVerlauf = function(){
+  const typ = g('vf_typ').value;
+  const q   = (g('vf_q').value||'').toLowerCase();
+  let data  = BU.filter(b=>{
+    if(typ && b.typ !== typ) return false;
+    if(q && !(b.transporteur||'').toLowerCase().includes(q) && !(b.kommNr||'').toLowerCase().includes(q) && !(b.kennzeichen||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const el = g('VT');
+  if(!el) return;
+  el.innerHTML = data.map(b=>{
+    const sw=(b.schwund_p||0)+(b.schwund_r||0)+(b.schwund_d||0);
+    const imgs = (b.fotos&&b.fotos.length) ? '<span style="font-size:10px;background:#f0f0f0;border-radius:4px;padding:2px 5px">&#x1F4F7;'+b.fotos.length+'</span> ' : '';
+    const sig  = b.unterschrift ? '<span style="font-size:10px;background:#f0f0f0;border-radius:4px;padding:2px 5px">&#x270D;</span> ' : '';
+    return '<tr><td>'+fdt(b.datetime)+'</td><td>'+bdg(b.typ)+'</td><td>'+(b.kommNr?'<span style="font-size:11px;font-weight:700;color:#cc2222">'+esc(b.kommNr)+'</span>':'<span style="color:#aaa">&mdash;</span>')+'</td><td>'+esc(b.transporteur||'')+'</td><td>'+esc(b.kennzeichen||'')+'</td><td style="text-align:center">'+(b.paletten||0)+'</td><td style="text-align:center">'+(b.rahmen||0)+'</td><td style="text-align:center">'+(b.deckel||0)+'</td><td style="text-align:center;color:'+(sw>0?'#cc2222':'#aaa')+'">'+sw+'</td><td>'+imgs+sig+'</td></tr>';
+  }).join('')||'<tr><td colspan="10" style="text-align:center;color:#aaa;padding:32px">Keine Einträge</td></tr>';
+}
+
+// ── SPEDITEURE ──
+function renderSpediteure(){
+  const q = (g('sp_q')&&g('sp_q').value||'').toLowerCase();
+  const f = q ? SP.filter(s=>(s.name||'').toLowerCase().includes(q)) : SP;
+  const el = g('SPG');
+  if(!el) return;
+  el.innerHTML = f.map(s=>{
+    const btn = '<button class="btn bd" style="padding:4px 10px;font-size:11px" onclick="deleteSpediteur(\"'+s.id+'\")">&#x1F5D1; Löschen</button>';
+    return '<div class="spc">'
+      +'<div style="font-weight:700;font-size:14px">'+esc(s.name)+'</div>'
+      +(s.kontakt?'<div style="font-size:12px;color:#888">&#x1F4DE; '+esc(s.kontakt)+'</div>':'')
+      +(s.email?'<div style="font-size:12px;color:#888">&#x2709; '+esc(s.email)+'</div>':'')
+      +(s.notiz?'<div style="font-size:12px;color:#aaa">'+esc(s.notiz)+'</div>':'')
+      +'<div style="display:flex;gap:6px;margin-top:6px">'+btn+'</div></div>';
+  }).join('')||'<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">Keine Spediteure vorhanden</div>';
+}
+window.spSearch = function(){ renderSpediteure(); }
+window.addSpediteur = async function(){
+  const name = sv('sp_name');
+  if(!name){ notif('Name erforderlich!', true); return; }
+  try{
+    await addDoc(collection(db,'spediteure'),{name, kontakt:sv('sp_tel'), email:sv('sp_mail'), notiz:sv('sp_no'), createdAt:new Date().toISOString()});
+    ['sp_name','sp_tel','sp_mail','sp_no'].forEach(id=>{ g(id).value=''; });
+    notif('Spediteur gespeichert!');
+  } catch(e){ notif('Fehler: '+e.message, true); }
+}
+window.deleteSpediteur = async function(id){
+  if(!confirm('Spediteur löschen?')) return;
+  try{ await deleteDoc(doc(db,'spediteure',id)); notif('Gelöscht.'); }
+  catch(e){ notif('Fehler: '+e.message, true); }
+}
+
+// ── BESTAND ANPASSEN ──
+window.adjBestand = async function(){
+  const typ = sv('adj_t'), aktion = sv('adj_a'), menge = iv('adj_m');
+  if(!menge){ notif('Menge eingeben!', true); return; }
+  try{
+    const bRef = doc(db,'config','bestand');
+    const bs = await getDoc(bRef);
+    const cur = bs.exists()?bs.data():{paletten:0,rahmen:0,deckel:0};
+    const delta = aktion==='add' ? menge : -menge;
+    cur[typ] = (cur[typ]||0) + delta;
+    await setDoc(bRef, cur);
+    notif('Bestand angepasst!');
+    g('adj_m').value=0;
+  } catch(e){ notif('Fehler: '+e.message, true); }
+}
+
+// ── OFFENE KOMMISSIONEN (Retoure Tab) ──
+function renderOK(){
+  const off = KO.filter(k=>k.status!=='abgeschlossen');
+  const el = g('OKL');
+  if(!el) return;
+  el.innerHTML = off.map(k=>'<div style="background:#fff;border:1px solid #d0d0d0;border-left:3px solid #cc2222;border-radius:8px;padding:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-weight:700;color:#cc2222">'+esc(k.nr)+'</span><span style="font-size:11px;color:#888">'+fdt(k.datum)+'</span></div><div style="font-size:12px;color:#888;margin-bottom:8px">'+esc(k.transporteur||'')+(k.kennzeichen?' &middot; '+esc(k.kennzeichen):'')+'</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px"><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Paletten</div><div style="font-weight:700">'+k.paletten+'</div></div><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Rahmen</div><div style="font-weight:700">'+k.rahmen+'</div></div><div style="text-align:center;background:#f7f7f7;border-radius:4px;padding:5px"><div style="font-size:10px;color:#aaa">Deckel</div><div style="font-weight:700">'+k.deckel+'</div></div></div></div>').join('')||'<div style="color:#aaa;font-size:13px;padding:4px">Keine offenen Kommissionen</div>';
+}
+
+// ── FIREBASE LISTENERS ──
+function startListeners(){
+  loaded = {bu:false, ko:false, sp:false, bs:false};
+  unsubs.forEach(u=>u()); unsubs=[];
+
+  const u1 = onSnapshot(collection(db,'buchungen'), snap=>{
+    BU = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>new Date(b.datetime||0)-new Date(a.datetime||0));
+    loaded.bu=true; checkReady(); updLS();
+    renderDash(); renderPrOffen(); initStatJahr();
+    if(!g('tab-verlauf').classList.contains('hidden')) renderVerlauf();
+  }, err=>{ console.error('buchungen',err); sync('off'); });
+
+  const u2 = onSnapshot(collection(db,'kommissionen'), snap=>{
+    KO = snap.docs.map(d=>({id:d.id,...d.data()}));
+    loaded.ko=true; checkReady(); updLS(); updSelects();
+    if(!g('tab-retoure').classList.contains('hidden')) renderOK();
+  }, err=>console.error('kommissionen',err));
+
+  const u3 = onSnapshot(collection(db,'spediteure'), snap=>{
+    SP = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    loaded.sp=true; checkReady(); updLS(); updSelects();
+    if(!g('tab-spediteure').classList.contains('hidden')) renderSpediteure();
+  }, err=>console.error('spediteure',err));
+
+  const u4 = onSnapshot(doc(db,'config','bestand'), snap=>{
+    BS = snap.exists()?snap.data():{paletten:0,rahmen:0,deckel:0};
+    loaded.bs=true; checkReady(); updLS(); checkMinBestand();
+    renderDash();
+    if(!g('tab-bestand').classList.contains('hidden')) renderBCB();
+  }, err=>console.error('bestand',err));
+
+  unsubs.push(u1,u2,u3,u4);
+
+  // 10s timeout
+  setTimeout(()=>{
+    if(!loaded.bu||!loaded.ko||!loaded.sp||!loaded.bs){
+      g('LS').innerHTML='<div style="color:#cc2222;font-size:14px;text-align:center;padding:20px">&#x274C; Firebase Verbindung fehlgeschlagen<br><br><button onclick="location.reload()" style="margin-top:12px;padding:10px 20px;background:#cc2222;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">&#x1F504; Neu laden</button></div>';
+    }
+  }, 10000);
+}
+
+// ── AUTH ──
+window.doLogin = async function(){
+  const email = sv('lg_email'), pw = sv('lg_pw');
+  if(!email||!pw){ notif('Email und Passwort eingeben!', true); return; }
+  g('lg_btn').disabled=true;
+  g('lg_btn').textContent='Anmelden...';
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e){
+    notif('Fehler: '+e.message, true);
+    g('lg_btn').disabled=false;
+    g('lg_btn').textContent='Anmelden';
+  }
+}
+window.doLogout = async function(){
+  unsubs.forEach(u=>u()); unsubs=[];
+  await signOut(auth);
+}
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    g('login_screen').style.display='none';
+    g('LS').style.display='flex';
+    g('app').style.display='none';
+    g('user_info').textContent=user.email;
+    startListeners();
+  } else {
+    unsubs.forEach(u=>u()); unsubs=[];
+    g('login_screen').style.display='flex';
+    g('LS').style.display='none';
+    g('app').style.display='none';
+    g('user_info').textContent='';
+    g('lg_btn').disabled=false;
+    g('lg_btn').textContent='Anmelden';
+  }
+});
+
+</script>
+</body>
+</html>
