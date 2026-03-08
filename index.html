@@ -510,6 +510,7 @@ const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
 
 let BU=[], SP=[], KO=[], BS={paletten:0,rahmen:0,deckel:0};
+let UID='';
 let minBS = {paletten:0, rahmen:0, deckel:0};
 
 const TL={abholung_intern:'Lieferung Intern',abholung_extern:'Lieferung Extern',retoure_intern:'Retoure Intern',retoure_extern:'Retoure Extern',produktion_aus:'Auslagerung Prod.',produktion_ruck:'Rücklagerung Prod.',manuell:'Manuell'};
