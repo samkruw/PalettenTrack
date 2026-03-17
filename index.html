@@ -150,7 +150,6 @@ function subscribeData() {
 window._saveAnwesenheit = async (data, id) => {
   const uid = currentUser.uid;
   await setDoc(doc(db, "kunden", uid, "anwesenheiten", id || "anw_"+Date.now()), data);
-  closeModal("anwModal");
 };
 window._deleteAnwesenheit = async (id) => {
   if (!confirm("Eintrag löschen?")) return;
@@ -159,9 +158,12 @@ window._deleteAnwesenheit = async (id) => {
 
 // ── CRUD RECHNUNGEN ────────────────────────────────────────
 window._saveRechnung = async (data, id) => {
-  const uid = currentUser.uid;
-  await setDoc(doc(db, "kunden", uid, "rechnungen", id || "rech_"+Date.now()), data);
-  closeModal("rechModal");
+  try {
+    const uid = currentUser.uid;
+    const docId = id || "rech_" + Date.now();
+    await setDoc(doc(db, "kunden", uid, "rechnungen", docId), data);
+    closeModal("rechModal");
+  } catch(e) { alert("Fehler beim Speichern: " + e.message); }
 };
 window._deleteRechnung = async (id) => {
   if (!confirm("Rechnung löschen?")) return;
@@ -639,12 +641,15 @@ function renderAnwesenheit() {
 }
 
 window._quickAnw = async (kindId, kindName, status) => {
-  const uid = currentUser.uid;
-  const today = new Date().toISOString().slice(0,10);
-  const existingId = anwesenheiten.find(a=>a.kindId===kindId&&a.datum===today)?.id;
-  await setDoc(doc(db, "kunden", uid, "anwesenheiten", existingId||"anw_"+Date.now()), {
-    kindId, kindName, datum: today, status, bemerkung: ""
-  });
+  try {
+    const uid = currentUser.uid;
+    const today = new Date().toISOString().slice(0,10);
+    const existingId = anwesenheiten.find(a=>a.kindId===kindId&&a.datum===today)?.id;
+    const docId = existingId || "anw_" + Date.now();
+    await setDoc(doc(db, "kunden", uid, "anwesenheiten", docId), {
+      kindId, kindName, datum: today, status, bemerkung: ""
+    });
+  } catch(e) { alert("Fehler: " + e.message); }
 };
 
 // ── RECHNUNGEN ─────────────────────────────────────────────
@@ -1122,60 +1127,268 @@ window._autoRechnungen = async () => {
 };
 
 // ── KOMMUNIKATION ──────────────────────────────────────────
+// Termine/Events State (in-memory, synced to nachrichten collection)
+// Typen: monatsbeitrag, event, termin, info
+
 function renderKommunikation() {
-  const rows = [...nachrichten].sort((a,b)=>b.datum?.localeCompare(a.datum||"")||0).map((n,i)=>`
-    <tr class="${i%2===0?'even':'odd'}">
-      <td class="muted fs12">${fmtDate(n.datum)}</td>
-      <td class="fw6">${n.betreff||"–"}</td>
-      <td>${n.empfaenger==="alle"?'<span class="badge green">Alle Eltern</span>':n.empfaenger||"–"}</td>
-      <td><span class="badge ${n.typ==="brief"?"primary":"amber"}">${n.typ==="brief"?"📄 Brief":"📧 E-Mail"}</span></td>
-      <td class="muted fs12" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.inhalt||"–"}</td>
-      <td>
-        <div class="action-row">
-          <button class="btn-icon" onclick="_openNachrichtModal('${n.id}')">✏️</button>
-          <button class="btn-icon danger" onclick="_deleteNachricht('${n.id}')">🗑</button>
-        </div>
-      </td>
-    </tr>`).join("");
+  const now = new Date();
+  const monat = now.getMonth();
+  const jahr  = now.getFullYear();
+
+  // Kalendertage für aktuellen Monat
+  const ersterTag  = new Date(jahr, monat, 1);
+  const letzterTag = new Date(jahr, monat+1, 0);
+  const startWd    = (ersterTag.getDay()||7) - 1; // Mo=0
+  const tageCount  = letzterTag.getDate();
+
+  // Nachrichten nach Typ gruppieren
+  const monatsBeitraege = nachrichten.filter(n=>n.typ==="monatsbeitrag");
+  const events          = nachrichten.filter(n=>n.typ==="event");
+  const termine         = nachrichten.filter(n=>n.typ==="termin");
+  const infos           = nachrichten.filter(n=>n.typ==="info"||n.typ==="brief"||n.typ==="email");
+
+  // Kalender bauen
+  const wd = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+  const kalHeader = wd.map(d=>`<div class="kal-hdr">${d}</div>`).join("");
+
+  let kalCells = "";
+  // Leere Zellen vor erstem Tag
+  for(let i=0; i<startWd; i++) kalCells += `<div class="kal-cell empty"></div>`;
+
+  for(let d=1; d<=tageCount; d++) {
+    const dateStr = `${jahr}-${String(monat+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const isToday = dateStr === new Date().toISOString().slice(0,10);
+    const dayEvents = nachrichten.filter(n=>n.datum===dateStr);
+    const dots = dayEvents.map(n=>{
+      const col = n.typ==="monatsbeitrag"?"#1A56C4":n.typ==="event"?"#D97706":n.typ==="termin"?"#16A34A":"#6B7280";
+      return `<span class="kal-dot" style="background:${col}" title="${n.betreff||n.typ}"></span>`;
+    }).join("");
+    kalCells += `<div class="kal-cell${isToday?" today":""}" onclick="_openNachrichtModal(null,'${dateStr}')">
+      <div class="kal-day">${d}</div>
+      <div class="kal-dots">${dots}</div>
+    </div>`;
+  }
+
+  // Kommende Einträge (nächste 30 Tage)
+  const today = new Date().toISOString().slice(0,10);
+  const inThirty = new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+  const kommend = [...nachrichten]
+    .filter(n=>n.datum>=today&&n.datum<=inThirty)
+    .sort((a,b)=>a.datum.localeCompare(b.datum));
+
+  const kommendRows = kommend.map(n=>{
+    const colors = {monatsbeitrag:"primary",event:"amber",termin:"green",info:"grey",brief:"primary",email:"amber"};
+    const icons  = {monatsbeitrag:"💰",event:"🎉",termin:"📅",info:"ℹ️",brief:"📄",email:"📧"};
+    return `<div class="komm-item" onclick="_openNachrichtModal('${n.id}')">
+      <div class="komm-date">${fmtDate(n.datum)}</div>
+      <div class="komm-icon">${icons[n.typ]||"📌"}</div>
+      <div class="komm-body">
+        <div class="fw6">${n.betreff||"–"}</div>
+        <div class="fs11 muted">${n.empfaenger==="alle"?"Alle Eltern":n.empfaenger||"–"} · <span class="badge ${colors[n.typ]||"grey"}">${n.typ}</span></div>
+      </div>
+      <div class="action-row">
+        <button class="btn-icon danger" onclick="event.stopPropagation();_deleteNachricht('${n.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join("") || `<div class="empty">Keine Einträge in den nächsten 30 Tagen.</div>`;
+
+  // Monatsbeitrag-Vorschau (neuester)
+  const neusterMB = monatsBeitraege.sort((a,b)=>b.datum?.localeCompare(a.datum||"")||0)[0];
+  const mbVorschau = neusterMB ? `
+  <div class="card mb-preview" style="margin-bottom:16px;cursor:pointer" onclick="_openNachrichtModal('${neusterMB.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="card-title">💰 ${neusterMB.betreff||"Monatsbeitrag"}</div>
+        <div class="card-sub">${fmtDate(neusterMB.datum)} · ${neusterMB.empfaenger==="alle"?"Alle Familien":neusterMB.empfaenger}</div>
+      </div>
+      <button class="btn-primary" onclick="event.stopPropagation();_druckBrief('${neusterMB.id}')">🖨️ Drucken</button>
+    </div>
+    <div class="mb-content-preview">${(neusterMB.inhalt||"").replace(/\n/g,"<br/>").slice(0,200)}${neusterMB.inhalt?.length>200?"…":""}</div>
+  </div>` : "";
 
   return `
   <div class="stats-grid" style="margin-bottom:16px">
-    <div class="stat-card"><div class="sc-icon">✉️</div><div class="sc-val primary">${nachrichten.length}</div><div class="sc-lbl">Nachrichten total</div></div>
-    <div class="stat-card"><div class="sc-icon">📄</div><div class="sc-val">${nachrichten.filter(n=>n.typ==="brief").length}</div><div class="sc-lbl">Elternbriefe</div></div>
-    <div class="stat-card"><div class="sc-icon">📧</div><div class="sc-val">${nachrichten.filter(n=>n.typ==="email").length}</div><div class="sc-lbl">E-Mails</div></div>
-    <div class="stat-card"><div class="sc-icon">👨‍👩‍👧</div><div class="sc-val green">${kinder.length}</div><div class="sc-lbl">Empfänger (Familien)</div></div>
+    <div class="stat-card"><div class="sc-icon">💰</div><div class="sc-val primary">${monatsBeitraege.length}</div><div class="sc-lbl">Monatsbeiträge</div></div>
+    <div class="stat-card"><div class="sc-icon">🎉</div><div class="sc-val amber">${events.length}</div><div class="sc-lbl">Events</div></div>
+    <div class="stat-card"><div class="sc-icon">📅</div><div class="sc-val green">${termine.length}</div><div class="sc-lbl">Termine</div></div>
+    <div class="stat-card"><div class="sc-icon">📄</div><div class="sc-val">${infos.length}</div><div class="sc-lbl">Infos / Briefe</div></div>
   </div>
+
   <div class="toolbar">
-    <button class="btn-primary" onclick="_openNachrichtModal()">+ Neue Nachricht</button>
+    <button class="btn-primary" onclick="_openNachrichtModal()">+ Neuer Eintrag</button>
+    <button class="btn-secondary" style="background:var(--primary-light);color:var(--primary);border:none" onclick="_openNachrichtModal(null,null,'monatsbeitrag')">💰 Monatsbeitrag</button>
+    <button class="btn-secondary" style="background:#FEF3C7;color:#D97706;border:none" onclick="_openNachrichtModal(null,null,'event')">🎉 Event</button>
+    <button class="btn-secondary" style="background:#DCFCE7;color:#16A34A;border:none" onclick="_openNachrichtModal(null,null,'termin')">📅 Termin</button>
   </div>
-  <div class="card table-wrap">
-    <table><thead><tr>${["Datum","Betreff","Empfänger","Typ","Inhalt (Vorschau)",""].map(h=>`<th>${h}</th>`).join("")}</tr></thead>
-    <tbody>${rows||'<tr><td colspan="6" class="empty">Noch keine Nachrichten.</td></tr>'}</tbody></table>
+
+  ${mbVorschau}
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px">
+
+    <\!-- Kalender -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin:0">${ersterTag.toLocaleDateString("de-CH",{month:"long",year:"numeric"})}</div>
+        <div style="display:flex;gap:6px">
+          ${["monatsbeitrag:💰:#1A56C4","event:🎉:#D97706","termin:📅:#16A34A","info:ℹ️:#6B7280"].map(x=>{const[t,i,c]=x.split(":");return `<span style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block"></span>${i} ${t}</span>`}).join("")}
+        </div>
+      </div>
+      <div class="kal-grid">
+        ${kalHeader}
+        ${kalCells}
+      </div>
+    </div>
+
+    <\!-- Kommende Einträge -->
+    <div class="card" style="overflow-y:auto;max-height:480px">
+      <div class="card-title" style="margin-bottom:12px">📋 Nächste 30 Tage</div>
+      ${kommendRows}
+    </div>
+
+  </div>
+
+  <\!-- Alle Einträge Tabelle -->
+  <div class="card table-wrap" style="margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px 0">
+      <div class="card-title">Alle Einträge</div>
+    </div>
+    <table style="margin-top:8px">
+      <thead><tr>${["Datum","Betreff","Empfänger","Typ","Vorschau",""].map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${[...nachrichten].sort((a,b)=>b.datum?.localeCompare(a.datum||"")||0).map((n,i)=>{
+          const icons={monatsbeitrag:"💰",event:"🎉",termin:"📅",info:"ℹ️",brief:"📄",email:"📧"};
+          const cols={monatsbeitrag:"primary",event:"amber",termin:"green",info:"grey",brief:"primary",email:"amber"};
+          return `<tr class="${i%2===0?"even":"odd"}">
+            <td class="muted fs12">${fmtDate(n.datum)}</td>
+            <td class="fw6">${icons[n.typ]||"📌"} ${n.betreff||"–"}</td>
+            <td>${n.empfaenger==="alle"?'<span class="badge green">Alle</span>':n.empfaenger||"–"}</td>
+            <td><span class="badge ${cols[n.typ]||"grey"}">${n.typ}</span></td>
+            <td class="muted fs12" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.inhalt||"–"}</td>
+            <td><div class="action-row">
+              <button class="btn-icon" onclick="_openNachrichtModal('${n.id}')">✏️</button>
+              <button class="btn-icon" onclick="_druckBrief('${n.id}')">🖨️</button>
+              <button class="btn-icon danger" onclick="_deleteNachricht('${n.id}')">🗑</button>
+            </div></td>
+          </tr>`;
+        }).join("")||'<tr><td colspan="6" class="empty">Noch keine Einträge.</td></tr>'}
+      </tbody>
+    </table>
   </div>`;
 }
 
-window._openNachrichtModal = (id) => {
+window._openNachrichtModal = (id, datum, typ) => {
   const n = id ? nachrichten.find(x=>x.id===id) : null;
-  const f = n || { betreff:"", empfaenger:"alle", typ:"brief", inhalt:"", datum: new Date().toISOString().slice(0,10) };
-  document.getElementById("nachrichtModalTitle").textContent = n ? "Nachricht bearbeiten" : "Neue Nachricht";
-  document.getElementById("nmBetreff").value    = f.betreff;
-  document.getElementById("nmInhalt").value     = f.inhalt;
-  document.getElementById("nmDatum").value      = f.datum;
-  document.getElementById("nmTyp").value        = f.typ;
+  const f = n || {
+    betreff:"", empfaenger:"alle",
+    typ: typ||"info",
+    inhalt:"", datum: datum||new Date().toISOString().slice(0,10),
+    betrag:"", faellig:""
+  };
+  document.getElementById("nachrichtModalTitle").textContent =
+    n ? "Eintrag bearbeiten" : (typ==="monatsbeitrag"?"💰 Monatsbeitrag":"Neuer Eintrag");
+
+  document.getElementById("nmBetreff").value  = f.betreff;
+  document.getElementById("nmInhalt").value   = f.inhalt;
+  document.getElementById("nmDatum").value    = f.datum;
+  document.getElementById("nmTyp").value      = f.typ;
+  document.getElementById("nmBetrag").value   = f.betrag||"";
+  document.getElementById("nmFaellig").value  = f.faellig||"";
+
+  // Show/hide betrag fields based on type
+  const showBetrag = f.typ==="monatsbeitrag";
+  document.getElementById("nmBetragRow").style.display = showBetrag ? "contents" : "none";
+  document.getElementById("nmTyp").onchange = function() {
+    document.getElementById("nmBetragRow").style.display = this.value==="monatsbeitrag" ? "contents" : "none";
+  };
+
   const empSel = document.getElementById("nmEmpfaenger");
-  empSel.innerHTML = `<option value="alle">Alle Eltern</option>` + kinder.map(k=>`<option value="${k.id}" ${f.empfaenger===k.id?"selected":""}>${k.eltern||k.name}</option>`).join("");
+  empSel.innerHTML = `<option value="alle">Alle Eltern</option>` +
+    kinder.map(k=>`<option value="${k.id}" ${f.empfaenger===k.id?"selected":""}>${k.eltern||k.name}</option>`).join("");
   empSel.value = f.empfaenger;
+
   document.getElementById("nmSaveBtn").onclick = () => {
-    _saveNachricht({
+    const data = {
       betreff:    document.getElementById("nmBetreff").value.trim(),
       empfaenger: empSel.value,
       typ:        document.getElementById("nmTyp").value,
       inhalt:     document.getElementById("nmInhalt").value.trim(),
       datum:      document.getElementById("nmDatum").value,
-    }, id||null);
+      betrag:     document.getElementById("nmBetrag").value,
+      faellig:    document.getElementById("nmFaellig").value,
+    };
+    if (!data.datum) { alert("Bitte Datum angeben."); return; }
+    _saveNachricht(data, id||null);
   };
   document.getElementById("nachrichtModal").classList.add("open");
 };
+
+// Drucke schönen Elternbrief / Monatsbeitrag
+window._druckBrief = (id) => {
+  const n = nachrichten.find(x=>x.id===id);
+  if (!n) return;
+  const icons={monatsbeitrag:"💰",event:"🎉",termin:"📅",info:"ℹ️",brief:"📄",email:"📧"};
+  const typ = n.typ||"info";
+  const icon = icons[typ]||"📌";
+  const isMB = typ==="monatsbeitrag";
+  const empName = n.empfaenger==="alle" ? "Liebe Eltern" :
+    (kinder.find(k=>k.id===n.empfaenger)?.eltern || n.empfaenger || "Liebe Eltern");
+
+  const parts = [
+    "<!DOCTYPE html><html lang='de'><head><meta charset='UTF-8'>",
+    "<title>" + (n.betreff||"Brief") + "<\/title>",
+    "<style>",
+    "@page{size:A4;margin:20mm}",
+    "*{box-sizing:border-box;margin:0;padding:0}",
+    "body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11pt;color:#111;line-height:1.6}",
+    ".page{max-width:170mm;margin:0 auto}",
+    ".hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8mm;border-bottom:2pt solid #1A56C4;margin-bottom:8mm}",
+    ".logo{font-size:16pt;font-weight:900;color:#1A56C4}",
+    ".logo-sub{font-size:8pt;color:#888;margin-top:2px}",
+    ".logo-addr{font-size:8pt;color:#555;margin-top:4px;line-height:1.5}",
+    ".meta{text-align:right;font-size:9pt;color:#888}",
+    ".tag-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:8pt;font-weight:700;margin-bottom:6mm;",
+    (isMB?"background:#EBF0FB;color:#1A56C4":"background:#DCFCE7;color:#166534"),
+    "}",
+    ".salut{font-size:12pt;font-weight:700;margin-bottom:4mm}",
+    ".title{font-size:18pt;font-weight:900;color:#1A56C4;margin-bottom:6mm;line-height:1.2}",
+    ".body-text{white-space:pre-wrap;font-size:11pt;line-height:1.7;color:#222;margin-bottom:8mm}",
+    isMB?".mb-box{background:#EBF0FB;border-radius:8px;padding:6mm 8mm;margin-bottom:8mm;border-left:4pt solid #1A56C4}.mb-box h3{font-size:10pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:3mm}.mb-row{display:flex;justify-content:space-between;padding:2mm 0;font-size:11pt}.mb-row.total{font-size:14pt;font-weight:900;color:#1A56C4;border-top:1pt solid #1A56C4;padding-top:3mm;margin-top:2mm}":"",
+    ".ftr{margin-top:12mm;padding-top:4mm;border-top:1pt solid #E2E6EC;font-size:8pt;color:#aaa;display:flex;justify-content:space-between}",
+    "<\/style><\/head><body><div class='page'>",
+    "<div class='hdr'>",
+    "<div><div class='logo'>&#127968; " + KITA_SETTINGS.name + "<\/div>",
+    "<div class='logo-sub'>Betreuung &middot; Verwaltung &middot; Schweiz<\/div>",
+    "<div class='logo-addr'>" + KITA_SETTINGS.strasse + "<br>" + KITA_SETTINGS.plz + " " + KITA_SETTINGS.ort + "<\/div><\/div>",
+    "<div class='meta'>" + new Date().toLocaleDateString("de-CH") + "<br>" + KITA_SETTINGS.uid + "<\/div><\/div>",
+    "<div class='tag-badge'>" + icon + " " + typ.charAt(0).toUpperCase()+typ.slice(1) + "<\/div>",
+    "<div class='salut'>" + empName + "<\/div>",
+    "<div class='title'>" + (n.betreff||"Mitteilung") + "<\/div>",
+    "<div class='body-text'>" + (n.inhalt||"").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "<\/div>",
+  ];
+
+  if (isMB && n.betrag) {
+    parts.push(
+      "<div class='mb-box'><h3>Zahlungsdetails<\/h3>",
+      "<div class='mb-row'><span>Monatsbeitrag<\/span><span>CHF " + Number(n.betrag).toLocaleString("de-CH",{minimumFractionDigits:2}) + "<\/span><\/div>",
+      n.faellig ? "<div class='mb-row'><span>F&auml;llig bis<\/span><span><strong>" + fmtDate(n.faellig) + "<\/strong><\/span><\/div>" : "",
+      "<div class='mb-row total'><span>TOTAL CHF<\/span><span>" + Number(n.betrag).toLocaleString("de-CH",{minimumFractionDigits:2}) + "<\/span><\/div>",
+      "<\/div>"
+    );
+  }
+
+  parts.push(
+    "<div class='ftr'><span>" + KITA_SETTINGS.name + " &bull; " + KITA_SETTINGS.strasse + ", " + KITA_SETTINGS.plz + " " + KITA_SETTINGS.ort + "<\/span>",
+    "<span>Datum: " + fmtDate(n.datum) + "<\/span><\/div>",
+    "<\/div><\/body><\/html>"
+  );
+
+  const html = parts.join("\n");
+  const w = window.open("","_blank");
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>{ try{w.print();}catch(e){} }, 700);
+};
+
 
 // ── DIENSTPLAN ─────────────────────────────────────────────
 function renderDienstplan() {
@@ -1382,8 +1595,12 @@ window._openMitarbModal = (id) => {
 
 // ── WARTELISTE ─────────────────────────────────────────────
 window._saveWarte = async (data, id) => {
-  await setDoc(doc(db, "kunden", currentUser.uid, "warteliste", id||"warte_"+Date.now()), data);
-  closeModal("warteModal");
+  try {
+    const uid = currentUser.uid;
+    const docId = id || "warte_" + Date.now();
+    await setDoc(doc(db, "kunden", uid, "warteliste", docId), data);
+    closeModal("warteModal");
+  } catch(e) { alert("Fehler beim Speichern: " + e.message); }
 };
 window._deleteWarte = async (id) => {
   if (!confirm("Eintrag löschen?")) return;
@@ -2085,6 +2302,29 @@ function showApp() {
   .btn-save   { flex: 1; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
   .btn-cancel { padding: 10px 18px; background: none; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; }
 
+
+  /* ── KALENDER ── */
+  .kal-grid  { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .kal-hdr   { text-align:center; font-size:10px; font-weight:700; color:var(--muted); padding:4px 0; text-transform:uppercase; letter-spacing:.5px; }
+  .kal-cell  { min-height:52px; border:1px solid var(--border); border-radius:5px; padding:4px 5px; cursor:pointer; transition:background .1s; background:var(--surface); }
+  .kal-cell:hover { background:var(--primary-light); }
+  .kal-cell.today { border-color:var(--primary); background:var(--primary-light); }
+  .kal-cell.empty { background:var(--bg); border-color:transparent; cursor:default; }
+  .kal-day   { font-size:11px; font-weight:700; color:var(--text); margin-bottom:3px; }
+  .kal-cell.today .kal-day { color:var(--primary); }
+  .kal-dots  { display:flex; gap:2px; flex-wrap:wrap; }
+  .kal-dot   { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  /* Kommunikation liste */
+  .komm-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .komm-item:hover { background:var(--bg); margin:0 -4px; padding:10px 4px; border-radius:6px; }
+  .komm-item:last-child { border-bottom:none; }
+  .komm-date { font-size:10px; font-weight:700; color:var(--muted); min-width:40px; text-align:center; }
+  .komm-icon { font-size:18px; flex-shrink:0; }
+  .komm-body { flex:1; min-width:0; }
+  .mb-content-preview { margin-top:8px; font-size:12px; color:var(--muted); line-height:1.5; white-space:pre-wrap; max-height:60px; overflow:hidden; }
+  .mb-preview { transition:box-shadow .15s; }
+  .mb-preview:hover { box-shadow:0 4px 16px rgba(26,86,196,.12); }
+
   @media (max-width: 768px) {
     .sidebar { width: 200px; min-width: 200px; }
     .main-area { margin-left: 200px; }
@@ -2260,19 +2500,27 @@ function showApp() {
 
 <!-- ── MODAL: NACHRICHT ── -->
 <div class="modal-overlay" id="nachrichtModal" onclick="if(event.target===this)closeModal('nachrichtModal')">
-  <div class="modal-box">
-    <div class="modal-title" id="nachrichtModalTitle">Neue Nachricht</div>
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-title" id="nachrichtModalTitle">Neuer Eintrag</div>
     <div class="modal-grid">
-      <div class="field full"><label>Betreff</label><input id="nmBetreff" type="text" placeholder="Betreff der Nachricht"/></div>
+      <div class="field full"><label>Betreff / Titel</label><input id="nmBetreff" type="text" placeholder="z.B. Monatsbeitrag März 2026"/></div>
       <div class="field"><label>Empfänger</label><select id="nmEmpfaenger"></select></div>
       <div class="field"><label>Typ</label>
         <select id="nmTyp">
+          <option value="monatsbeitrag">💰 Monatsbeitrag</option>
+          <option value="event">🎉 Event / Anlass</option>
+          <option value="termin">📅 Termin</option>
+          <option value="info">ℹ️ Info</option>
           <option value="brief">📄 Elternbrief</option>
           <option value="email">📧 E-Mail</option>
         </select>
       </div>
       <div class="field"><label>Datum</label><input id="nmDatum" type="date"/></div>
-      <div class="field full"><label>Inhalt</label><textarea id="nmInhalt" class="field-textarea" placeholder="Nachrichteninhalt…"></textarea></div>
+      <div id="nmBetragRow" style="display:contents">
+        <div class="field"><label>Betrag (CHF)</label><input id="nmBetrag" type="number" placeholder="0.00" step="0.05"/></div>
+        <div class="field"><label>Zahlbar bis</label><input id="nmFaellig" type="date"/></div>
+      </div>
+      <div class="field full"><label>Inhalt / Beschreibung</label><textarea id="nmInhalt" class="field-textarea" style="min-height:120px" placeholder="Liebe Eltern&#10;&#10;Schreiben Sie hier Ihren Text..."></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn-save" id="nmSaveBtn">Speichern</button>
