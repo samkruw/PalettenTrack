@@ -1098,13 +1098,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/fireba
 import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, setDoc, getDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-const FB = {
+const firebaseConfig = {
   apiKey: "AIzaSyDgqI7aSWhZHmGrJyxFxKo0Uq87CZicnWk",
   authDomain: "palettentracker.firebaseapp.com",
   projectId: "palettentracker",
   storageBucket: "palettentracker.firebasestorage.app",
   messagingSenderId: "380579660889",
-  appId: "1:380579660889:web:0f984871cbea61c43a1d48"
+  appId: "1:380579660889:web:0f984871cbea61c43a1d48",
+  measurementId: "G-WKNPS74HX5"
 };
 const firebaseApp = initializeApp(FB);
 const db = getFirestore(firebaseApp);
