@@ -483,6 +483,56 @@ canvas.canvas-sig { width:100%; height:130px; border:1px solid var(--border2); b
 
 .hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; border:1px solid var(--border); border-radius:8px; background:var(--card); cursor:pointer; }
 
+
+/* ── DASHBOARD MOBILE ── */
+@media(max-width:900px){
+  .dash-grid-2 { grid-template-columns:1fr!important; }
+  
+  /* Stat cards 2-col on mobile */
+  #BCA { grid-template-columns:1fr 1fr!important; }
+  
+  /* AI workflows stack */
+  .ai-workflow-grid { grid-template-columns:1fr!important; }
+  
+  /* AI key area stack */
+  .ai-key-area .ai-key-row { flex-direction:column!important; }
+  .ai-key-area .ai-key-row > div { min-width:100%!important; }
+  .ai-key-area .ai-key-row > button { width:100%; justify-content:center; }
+  
+  /* KI workflow cards full width */
+  .ai-workflow-grid .card { border-top-width:2px; }
+  
+  /* Page header tighter on mobile */
+  .page-header { margin-bottom:1rem; }
+  .page-header h1 { font-size:20px; }
+  
+  /* Dashboard recent bookings table horizontal scroll */
+  #RT td, #RT th { white-space:nowrap; }
+  
+  /* Offene Kommissionen cards full width */
+  #OKG { gap:6px; }
+  .komm-card { padding:10px 12px; }
+  
+  /* Schwund widget smaller */
+  #SWG { grid-template-columns:repeat(3,1fr)!important; gap:6px; }
+  
+  /* Stat card compact */  
+  .stat-card { padding:1rem; }
+  .stat-value { font-size:26px; }
+  .stat-icon { width:30px; height:30px; font-size:14px; top:12px; right:12px; }
+  
+  /* KI response box */
+  .ai-response { font-size:12px; }
+  
+  /* AI key status */
+  #ai_key_status { flex-wrap:wrap; }
+}
+
+/* Mobile 1-col for stat cards only at very small screens */
+@media(max-width:400px){
+  #BCA { grid-template-columns:1fr 1fr!important; }
+}
+
 /* ── HIDDEN ── */
 .hidden { display:none!important; }
 
@@ -850,14 +900,14 @@ tr { transition: background .12s ease; }
           <p>Aktueller Überblick — <span id="DD2"></span></p>
         </div>
         <div class="grid-4" id="BCA" style="margin-bottom:1rem"></div>
-        <div class="grid-2" style="margin-bottom:1rem">
+        <div class="grid-2 dash-grid-2" style="margin-bottom:1rem">
           <div class="card">
             <div class="card-title"><span style="display:inline-flex;align-items:center;gap:6px"><i data-lucide="triangle-alert" style="width:13px;height:13px;color:var(--red)"></i> Schwund bei Retoure</span></div>
             <div id="SWG" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div>
           </div>
           <div class="card">
             <div class="card-title"><span style="display:inline-flex;align-items:center;gap:6px"><i data-lucide="clipboard-list" style="width:13px;height:13px"></i> Offene Kommissionen</span></div>
-            <div id="OKG" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div id="OKG" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto"></div>
           </div>
         </div>
         <div class="card">
@@ -1153,7 +1203,7 @@ tr { transition: background .12s ease; }
         <div class="card">
           <div class="card-title">🔑 Groq API-Key</div>
           <div class="ai-key-area">
-            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap" class="ai-key-row">
               <div style="flex:1;min-width:200px">
                 <label class="form-label">API-Key (wird im Browser gespeichert)</label>
                 <input type="password" id="ai_key_input" placeholder="gsk_..." style="font-family:monospace">
@@ -1170,7 +1220,7 @@ tr { transition: background .12s ease; }
           </div>
         </div>
 
-        <div class="grid-3" style="margin-bottom:1rem">
+        <div class="grid-3 ai-workflow-grid" style="margin-bottom:1rem">
           <!-- WORKFLOW 1 -->
           <div class="card" style="border-top:3px solid var(--red)">
             <div class="ai-chip" style="margin-bottom:10px"><i data-lucide="triangle-alert" style="width:11px;height:11px"></i> Analyse</div>
@@ -1206,23 +1256,23 @@ tr { transition: background .12s ease; }
 <!-- MOBILE BOTTOM NAV -->
 <div class="mobile-bottom-nav" id="mobileBottomNav">
   <div class="mobile-bottom-nav-inner">
-    <button class="mbn-btn active" id="mbn-dashboard" onclick="mbnGo('dashboard')">
+    <button class="mbn-btn active" id="mbn-dashboard" data-page="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
       <span>Board</span>
     </button>
-    <button class="mbn-btn" id="mbn-abholung" onclick="mbnGo('abholung')">
+    <button class="mbn-btn" id="mbn-abholung" data-page="abholung">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
       <span>Lieferung</span>
     </button>
-    <button class="mbn-btn" id="mbn-retoure" onclick="mbnGo('retoure')">
+    <button class="mbn-btn" id="mbn-retoure" data-page="retoure">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 15 7 7 7-7"/><path d="M12 8v14"/><circle cx="12" cy="3" r="1"/></svg>
       <span>Retoure</span>
     </button>
-    <button class="mbn-btn" id="mbn-bestand" onclick="mbnGo('bestand')">
+    <button class="mbn-btn" id="mbn-bestand" data-page="bestand">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect x="8" y="14" width="8" height="8"/></svg>
       <span>Bestand</span>
     </button>
-    <button class="mbn-btn" id="mbn-mehr" onclick="toggleMoreDrawer()">
+    <button class="mbn-btn" id="mbn-mehr" data-action="drawer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>
       <span>Mehr</span>
     </button>
@@ -1233,39 +1283,110 @@ tr { transition: background .12s ease; }
 <div class="mobile-more-drawer" id="mobileMoreDrawer">
   <div class="mmd-handle"></div>
   <div class="mmd-grid">
-    <div class="mmd-item" onclick="mbnGo('produktion');toggleMoreDrawer()">
+    <div class="mmd-item" data-page="produktion">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
       <span>Produktion</span>
     </div>
-    <div class="mmd-item" onclick="mbnGo('verlauf');toggleMoreDrawer()">
+    <div class="mmd-item" data-page="verlauf">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 3H9.5a2.5 2.5 0 0 0 0 5H15"/></svg>
       <span>Verlauf</span>
     </div>
-    <div class="mmd-item" onclick="mbnGo('statistiken');toggleMoreDrawer()">
+    <div class="mmd-item" data-page="statistiken">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
       <span>Statistiken</span>
     </div>
-    <div class="mmd-item" onclick="mbnGo('spediteure');toggleMoreDrawer()">
+    <div class="mmd-item" data-page="spediteure">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
       <span>Spediteure</span>
     </div>
-    <div class="mmd-item" onclick="mbnGo('ai');toggleMoreDrawer()" style="border-color:rgba(139,92,246,.2);background:var(--purple-light)">
+    <div class="mmd-item" data-page="ai" style="border-color:rgba(139,92,246,.2);background:var(--purple-light)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75;color:var(--purple)"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
       <span style="color:var(--purple)">KI-Assistent</span>
     </div>
-    <div class="mmd-item" onclick="openExp();toggleMoreDrawer()">
+    <div class="mmd-item" data-action="export">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px;stroke-width:1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       <span>Export</span>
     </div>
   </div>
   <div class="mmd-bottom">
-    <button class="mmd-btn" onclick="toggleMoreDrawer()">✕ Schliessen</button>
-    <button class="mmd-btn mmd-btn-danger" onclick="doLogout();toggleMoreDrawer()">Abmelden</button>
+    <button class="mmd-btn" data-action="close">✕ Schliessen</button>
+    <button class="mmd-btn mmd-btn-danger" data-action="logout">Abmelden</button>
   </div>
 </div>
 
 <!-- MOBILE OVERLAY -->
-<div id="mobileOverlay" onclick="closeMoreDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:298;backdrop-filter:blur(2px)"></div>
+<div id="mobileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:298;backdrop-filter:blur(2px)"></div>
+
+<!-- MOBILE NAV SCRIPT (non-module, event delegation – no onclick needed) -->
+<script>
+(function(){
+  function _mbnReady(){
+    // Bottom nav buttons
+    document.querySelectorAll('.mbn-btn[data-page]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var page = btn.getAttribute('data-page');
+        if(window.showPage) window.showPage(page, null);
+        _closeDrawer();
+      });
+    });
+
+    // Mehr button
+    var mehrBtn = document.getElementById('mbn-mehr');
+    if(mehrBtn) mehrBtn.addEventListener('click', _toggleDrawer);
+
+    // Drawer items
+    document.querySelectorAll('.mmd-item[data-page]').forEach(function(item){
+      item.addEventListener('click', function(){
+        var page = item.getAttribute('data-page');
+        if(window.showPage) window.showPage(page, null);
+        _closeDrawer();
+      });
+    });
+
+    // Drawer actions
+    document.querySelectorAll('.mmd-item[data-action], .mmd-btn[data-action]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var action = el.getAttribute('data-action');
+        if(action === 'export'){ if(window.openExp) window.openExp(); _closeDrawer(); }
+        else if(action === 'close'){ _closeDrawer(); }
+        else if(action === 'logout'){ if(window.doLogout) window.doLogout(); _closeDrawer(); }
+        else if(action === 'drawer'){ _toggleDrawer(); }
+      });
+    });
+
+    // Overlay closes drawer
+    var overlay = document.getElementById('mobileOverlay');
+    if(overlay) overlay.addEventListener('click', _closeDrawer);
+  }
+
+  function _toggleDrawer(){
+    var d = document.getElementById('mobileMoreDrawer');
+    var o = document.getElementById('mobileOverlay');
+    if(!d) return;
+    var open = d.classList.contains('open');
+    if(open){ _closeDrawer(); }
+    else { d.classList.add('open'); if(o) o.style.display='block'; }
+  }
+
+  function _closeDrawer(){
+    var d = document.getElementById('mobileMoreDrawer');
+    var o = document.getElementById('mobileOverlay');
+    if(d) d.classList.remove('open');
+    if(o) o.style.display='none';
+  }
+
+  // Expose for module script to call
+  window.toggleMoreDrawer = _toggleDrawer;
+  window.closeMoreDrawer = _closeDrawer;
+
+  // Wait for DOM
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', _mbnReady);
+  } else {
+    _mbnReady();
+  }
+})();
+</script>
 
 <!-- EXPORT MODAL -->
 <div style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)" class="hidden" id="EXM" onclick="if(event.target===this)closeExp()">
@@ -2217,60 +2338,10 @@ function startListeners(){
   },10000);
 }
 
-// ── MOBILE BOTTOM NAV ──
-window.mbnGo = function(id) {
-  showPage(id, null);
-  document.querySelectorAll('.mbn-btn').forEach(b=>b.classList.remove('active'));
-  const btn = document.getElementById('mbn-'+id);
-  if(btn) btn.classList.add('active');
-  else { const mehr = document.getElementById('mbn-mehr'); if(mehr) mehr.classList.add('active'); }
-  closeMoreDrawer();
-}
-
-window.toggleMoreDrawer = function() {
-  const drawer = document.getElementById('mobileMoreDrawer');
-  const overlay = document.getElementById('mobileOverlay');
-  if(!drawer) return;
-  const isOpen = drawer.classList.contains('open');
-  if(isOpen) { closeMoreDrawer(); }
-  else { drawer.classList.add('open'); if(overlay) overlay.style.display='block'; }
-}
-window.closeMoreDrawer = function() {
-  const drawer = document.getElementById('mobileMoreDrawer');
-  const overlay = document.getElementById('mobileOverlay');
-  if(drawer) drawer.classList.remove('open');
-  if(overlay) overlay.style.display='none';
-}
-
 // Bottom nav sync - called directly by showPage below
 
 // ── LUCIDE ICONS INIT ──
 // Icons rendered inline - no CDN needed
-// ── MOBILE BOTTOM NAV ──
-window.mbnGo = function(id) {
-  showPage(id, null);
-  document.querySelectorAll('.mbn-btn').forEach(b=>b.classList.remove('active'));
-  const btn = document.getElementById('mbn-'+id);
-  if(btn) btn.classList.add('active');
-  else { const mehr = document.getElementById('mbn-mehr'); if(mehr) mehr.classList.add('active'); }
-  closeMoreDrawer();
-}
-
-window.toggleMoreDrawer = function() {
-  const drawer = document.getElementById('mobileMoreDrawer');
-  const overlay = document.getElementById('mobileOverlay');
-  if(!drawer) return;
-  const isOpen = drawer.classList.contains('open');
-  if(isOpen) { closeMoreDrawer(); }
-  else { drawer.classList.add('open'); if(overlay) overlay.style.display='block'; }
-}
-window.closeMoreDrawer = function() {
-  const drawer = document.getElementById('mobileMoreDrawer');
-  const overlay = document.getElementById('mobileOverlay');
-  if(drawer) drawer.classList.remove('open');
-  if(overlay) overlay.style.display='none';
-}
-
 // Bottom nav sync - called directly by showPage below
 
 // ── LUCIDE ICONS INIT ──
