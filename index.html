@@ -104,6 +104,7 @@ window.lucide={createIcons:_renderLucide};
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
+html, body { overflow-x:hidden; max-width:100vw; }
 body { background:var(--bg); color:var(--text); font-family:'DM Sans',system-ui,sans-serif; font-size:14px; }
 input, select, textarea {
   background:#fff; border:1px solid var(--border2); border-radius:8px;
@@ -339,7 +340,7 @@ button { cursor:pointer; font-family:inherit; }
 .badge-purple { background:var(--purple-light); color:var(--purple); }
 
 /* ── TABLE ── */
-.table-wrap { overflow:auto; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); }
+.table-wrap { overflow-x:auto; overflow-y:visible; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); -webkit-overflow-scrolling:touch; }
 table { width:100%; border-collapse:collapse; }
 th { background:var(--bg); font-weight:700; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
 td { padding:10px 14px; font-size:12px; border-top:1px solid var(--border); vertical-align:middle; }
@@ -531,6 +532,34 @@ canvas.canvas-sig { width:100%; height:130px; border:1px solid var(--border2); b
 /* Mobile 1-col for stat cards only at very small screens */
 @media(max-width:400px){
   #BCA { grid-template-columns:1fr 1fr!important; }
+}
+
+
+/* ── PREVENT HORIZONTAL SCROLL ── */
+#app-shell, .main-content, .page, .card, .topbar {
+  max-width:100%;
+  overflow-x:hidden;
+}
+.table-wrap {
+  max-width:100%;
+  overflow-x:auto;
+}
+/* Tables scroll inside their container, not the page */
+table { display:table; }
+@media(max-width:900px){
+  html, body, #app-shell, .main-content { 
+    overflow-x:hidden !important; 
+    max-width:100vw !important;
+  }
+  .page { overflow-x:hidden; }
+  /* Stat cards don't overflow */
+  #BCA > * { min-width:0; }
+  .stat-card { min-width:0; overflow:hidden; }
+  .stat-value { font-size:24px !important; }
+  /* Form rows don't overflow */
+  .form-row > * { min-width:0; }
+  /* Cards don't overflow */
+  .card { overflow:hidden; }
 }
 
 /* ── HIDDEN ── */
