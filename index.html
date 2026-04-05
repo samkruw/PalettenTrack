@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudStream Web</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--bg4:#222230;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--text:#e8e8f0;--text2:#9090b0;--text3:#5a5a7a;--border:#2a2a3a;--card:#14141e;--glow:0 0 30px rgba(108,99,255,0.15);--radius:12px;--font:'Syne',sans-serif;--mono:'JetBrains Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.bg-glow{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(108,99,255,0.08) 0%,transparent 70%);top:-100px;left:-100px;pointer-events:none;z-index:0}
+.bg-glow2{position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,101,132,0.05) 0%,transparent 70%);bottom:0;right:0;pointer-events:none;z-index:0}
+.screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.screen.hidden{display:none!important}
+.setup-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:480px;box-shadow:var(--glow);max-height:90vh;overflow-y:auto}
+.setup-logo{text-align:center;margin-bottom:2rem}
+.setup-logo h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.setup-logo p{color:var(--text2);font-size:0.85rem;margin-top:0.3rem}
+.setup-tabs{display:flex;background:var(--bg3);border-radius:8px;padding:4px;margin-bottom:1.5rem}
+.setup-tab{flex:1;text-align:center;padding:0.5rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-family:var(--font);color:var(--text2);border:none;background:none;transition:all 0.2s}
+.setup-tab.active{background:var(--accent);color:#fff}
+.form-group{margin-bottom:1rem}
+.form-label{font-size:0.78rem;color:var(--text2);margin-bottom:0.4rem;display:block}
+.form-input{width:100%;padding:0.65rem 0.9rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.82rem;transition:border-color 0.2s;outline:none}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text3)}
+.form-hint{font-size:0.72rem;color:var(--text3);margin-top:0.3rem}
+.btn-primary{width:100%;padding:0.75rem;background:linear-gradient(135deg,var(--accent),#8b83ff);border:none;border-radius:8px;color:#fff;font-family:var(--font);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:0.5rem}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(108,99,255,0.4)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.link-btn{background:none;border:none;color:var(--accent);font-family:var(--font);font-size:0.82rem;cursor:pointer;padding:0.3rem 0;text-decoration:underline;width:100%;text-align:center;margin-top:0.5rem;display:block}
+.fb-section{background:var(--bg3);border-radius:8px;padding:1rem;margin-bottom:1rem}
+.fb-section-title{font-size:0.75rem;color:var(--text3);margin-bottom:0.8rem;font-weight:700}
+#app{display:none;min-height:100vh;position:relative;z-index:1}
+#app.visible{display:flex}
+.sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.5rem 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar-logo{padding:0 1.2rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.sidebar-logo h2{font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sidebar-logo span{font-size:0.7rem;color:var(--text3);display:block}
+.nav-group{padding:0 0.7rem;margin-bottom:0.3rem}
+.nav-label{font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;padding:0.5rem 0.5rem 0.3rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;color:var(--text2);font-size:0.85rem;font-weight:600;transition:all 0.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(108,99,255,0.15);color:var(--accent)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px}
+.nav-badge.red{background:var(--accent2)}
+.sidebar-bottom{margin-top:auto;padding:1rem 0.7rem 0;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.8rem;border-radius:8px;cursor:pointer;transition:background 0.15s}
+.user-chip:hover{background:var(--bg3)}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{overflow:hidden}
+.user-name{font-size:0.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:0.68rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-badge{font-size:0.6rem;background:rgba(255,101,132,0.2);color:var(--accent2);border-radius:4px;padding:1px 5px;font-weight:700;margin-top:2px;display:inline-block}
+.main{flex:1;overflow-y:auto}
+.page{display:none;padding:2rem;animation:fadeIn 0.25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:2rem}
+.page-title{font-size:1.6rem;font-weight:800}
+.page-sub{color:var(--text2);font-size:0.85rem;margin-top:0.3rem}
+.section-label{font-size:0.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.8rem}
+.btn{padding:0.55rem 1rem;border-radius:8px;font-family:var(--font);font-size:0.82rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.4rem}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:#7d75ff;box-shadow:0 4px 15px rgba(108,99,255,0.4)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+.btn-danger{background:rgba(255,80,80,0.1);color:#ff5050;border:1px solid rgba(255,80,80,0.2)}
+.btn-danger:hover{background:rgba(255,80,80,0.2)}
+.btn-success{background:rgba(67,233,123,0.1);color:var(--accent3);border:1px solid rgba(67,233,123,0.2)}
+.btn-success:hover{background:rgba(67,233,123,0.2)}
+.btn-warn{background:rgba(255,193,7,0.1);color:#ffc107;border:1px solid rgba(255,193,7,0.2)}
+.btn-warn:hover{background:rgba(255,193,7,0.2)}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem}
+.stats-row{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+.stat-card{flex:1;min-width:110px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.5rem}
+.stat-val{font-size:1.8rem;font-weight:800}
+.stat-label{font-size:0.75rem;color:var(--text2);margin-top:0.2rem}
+.stat-card.a .stat-val{color:var(--accent)}.stat-card.p .stat-val{color:var(--accent2)}.stat-card.g .stat-val{color:var(--accent3)}.stat-card.y .stat-val{color:#ffc107}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.search-wrap{position:relative;max-width:700px;margin-bottom:1rem}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-input{width:100%;padding:0.75rem 1rem 0.75rem 2.8rem;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:0.9rem;outline:none;transition:border-color 0.2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text3)}
+.search-actions{display:flex;gap:0.7rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.tag-filters{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.filter-tag{font-size:0.75rem;padding:0.3rem 0.9rem;border-radius:20px;cursor:pointer;background:var(--bg3);color:var(--text2);border:1px solid var(--border);font-family:var(--font);transition:all 0.15s}
+.filter-tag.active{background:rgba(108,99,255,0.2);color:var(--accent);border-color:rgba(108,99,255,0.4)}
+.ext-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:all 0.2s;position:relative;overflow:hidden}
+.ext-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity 0.2s}
+.ext-card:hover{border-color:rgba(108,99,255,0.3);box-shadow:var(--glow)}
+.ext-card:hover::before,.ext-card.shared::before{opacity:1}
+.ext-card.shared{border-color:rgba(67,233,123,0.2)}
+.ext-card.shared::before{background:linear-gradient(90deg,var(--accent3),#38f9d7)}
+.ext-header{display:flex;align-items:flex-start;gap:0.8rem;margin-bottom:0.8rem}
+.ext-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;color:#fff;font-weight:700}
+.ext-meta{flex:1;min-width:0}
+.ext-name{font-size:0.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ext-repo{font-size:0.7rem;color:var(--text3);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ext-badge{font-size:0.65rem;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0;white-space:nowrap}
+.ba{background:rgba(67,233,123,0.15);color:var(--accent3)}
+.bi{background:rgba(144,144,176,0.15);color:var(--text3)}
+.bs{background:rgba(67,233,123,0.15);color:var(--accent3)}
+.ext-desc{font-size:0.78rem;color:var(--text2);line-height:1.5;margin-bottom:0.8rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ext-tags{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.8rem}
+.ext-tag{font-size:0.65rem;padding:2px 8px;background:var(--bg3);border-radius:20px;color:var(--text3)}
+.ext-footer{display:flex;align-items:center;justify-content:space-between}
+.ext-stars{font-size:0.75rem;color:var(--text3)}
+.ext-actions{display:flex;gap:0.4rem}
+.update-pill{font-size:0.68rem;color:#ffc107;background:rgba(255,193,7,0.1);border-radius:6px;padding:2px 6px;cursor:pointer;border:1px solid rgba(255,193,7,0.2)}
+.ai-panel{background:linear-gradient(135deg,rgba(108,99,255,0.05),rgba(255,101,132,0.03));border:1px solid rgba(108,99,255,0.2);border-radius:var(--radius);padding:1.2rem;margin-bottom:1.5rem}
+.ai-header{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.8rem}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--accent3);box-shadow:0 0 6px var(--accent3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ai-title{font-size:0.8rem;font-weight:700;color:var(--accent)}
+.ai-output{font-size:0.82rem;color:var(--text2);line-height:1.6;font-family:var(--mono);white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.loading{display:flex;align-items:center;gap:0.6rem;color:var(--text2);font-size:0.82rem;margin-bottom:1rem}
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:3rem;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;margin-bottom:1rem;opacity:0.3}
+.empty-state h3{font-size:1rem;color:var(--text2);margin-bottom:0.4rem}
+.empty-state p{font-size:0.82rem}
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.5);animation:mIn 0.25s ease}
+@keyframes mIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-title{font-size:1.1rem;font-weight:800;margin-bottom:1.5rem}
+.modal-actions{display:flex;gap:0.5rem;margin-top:1.5rem;justify-content:flex-end}
+.settings-section{margin-bottom:2rem}
+.settings-title{font-size:0.8rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.settings-row{display:flex;align-items:center;padding:0.9rem 1.2rem;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-row-info{flex:1}
+.settings-row-label{font-size:0.85rem;font-weight:600}
+.settings-row-desc{font-size:0.75rem;color:var(--text3);margin-top:0.2rem}
+.settings-row-action{margin-left:1rem;flex-shrink:0}
+.toggle{width:40px;height:22px;background:var(--bg4);border-radius:11px;position:relative;cursor:pointer;border:none;transition:background 0.2s}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(18px)}
+.chat-wrap{max-width:700px}
+.chat-messages{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;min-height:300px;max-height:420px;overflow-y:auto;margin-bottom:1rem;display:flex;flex-direction:column;gap:0.8rem}
+.chat-msg{display:flex;gap:0.7rem}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0}
+.chat-av.ai{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.chat-av.user{background:var(--bg3);color:var(--text2)}
+.chat-bubble{max-width:80%;padding:0.7rem 1rem;border-radius:12px;font-size:0.82rem;line-height:1.5}
+.chat-msg.ai .chat-bubble{background:var(--bg3);color:var(--text);border-radius:4px 12px 12px 12px}
+.chat-msg.user .chat-bubble{background:rgba(108,99,255,0.2);color:var(--text);border-radius:12px 4px 12px 12px}
+.chat-input-row{display:flex;gap:0.5rem}
+.chat-input{flex:1;padding:0.7rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:0.85rem;outline:none}
+.chat-input:focus{border-color:var(--accent)}
+.repo-list{display:flex;flex-direction:column;gap:0.8rem}
+.gh-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:all 0.2s}
+.gh-card:hover{border-color:rgba(108,99,255,0.3)}
+.gh-title{font-size:0.9rem;font-weight:700;color:var(--accent);margin-bottom:0.3rem}
+.gh-desc{font-size:0.78rem;color:var(--text2);margin-bottom:0.8rem;line-height:1.5}
+.gh-meta{display:flex;align-items:center;gap:0.8rem;font-size:0.72rem;color:var(--text3);flex-wrap:wrap}
+.score{font-size:0.7rem;padding:2px 8px;border-radius:20px;font-weight:700}
+.sh{background:rgba(67,233,123,0.15);color:var(--accent3)}.sm{background:rgba(255,193,7,0.15);color:#ffc107}.sl{background:rgba(255,80,80,0.15);color:#ff5050}
+.feed-item{display:flex;gap:0.8rem;padding:0.8rem 0;border-bottom:1px solid var(--border)}
+.feed-item:last-child{border-bottom:none}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--accent)}
+.feed-content{flex:1;min-width:0}
+.feed-title{font-size:0.82rem;font-weight:600;margin-bottom:0.2rem}
+.feed-meta{font-size:0.72rem;color:var(--text3)}
+.sort-bar{display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+.sort-label{font-size:0.75rem;color:var(--text3)}
+.sort-btn{font-size:0.75rem;padding:0.25rem 0.7rem;border-radius:6px;cursor:pointer;background:var(--bg3);color:var(--text2);border:1px solid var(--border);font-family:var(--font);transition:all 0.15s}
+.sort-btn.active{background:rgba(108,99,255,0.15);color:var(--accent);border-color:rgba(108,99,255,0.3)}
+.user-row{display:flex;align-items:center;gap:0.8rem;padding:0.8rem 1rem;border-bottom:1px solid var(--border)}
+.user-row:last-child{border-bottom:none}
+.user-row-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:#fff;flex-shrink:0}
+.user-row-info{flex:1;min-width:0}
+.user-row-email{font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-row-meta{font-size:0.7rem;color:var(--text3);margin-top:2px}
+.role-badge{font-size:0.65rem;padding:2px 8px;border-radius:20px;font-weight:700}
+.r-admin{background:rgba(255,101,132,0.15);color:var(--accent2)}
+.r-user{background:rgba(144,144,176,0.1);color:var(--text3)}
+.r-pending{background:rgba(255,193,7,0.15);color:#ffc107}
+.history-chip{font-size:0.75rem;padding:0.3rem 0.8rem;background:var(--bg3);border:1px solid var(--border);border-radius:20px;cursor:pointer;color:var(--text2);font-family:var(--font);display:inline-flex;align-items:center;gap:0.4rem;transition:all 0.15s}
+.history-chip:hover{color:var(--text);border-color:var(--accent)}
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem}
+.toast{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1.2rem;font-size:0.82rem;color:var(--text);box-shadow:0 8px 25px rgba(0,0,0,0.4);animation:tIn 0.3s ease;display:flex;align-items:center;gap:0.5rem;min-width:200px;max-width:320px}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast.success{border-color:rgba(67,233,123,0.3)}.toast.error{border-color:rgba(255,80,80,0.3)}.toast.info{border-color:rgba(108,99,255,0.3)}.toast.warn{border-color:rgba(255,193,7,0.3)}
+@media(max-width:768px){.sidebar{width:60px}.sidebar-logo h2,.nav-item span,.nav-badge,.nav-label,.user-info,.sidebar-logo span,.admin-badge{display:none}.nav-item{justify-content:center;padding:0.7rem}.user-chip{padding:0.5rem;justify-content:center}.page{padding:1rem}.stats-row{gap:0.5rem}}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div><div class="bg-glow2"></div>
+<div class="toast-container" id="TC"></div>
+
+<!-- SETUP -->
+<div id="setup-screen" class="screen">
+  <div class="setup-card">
+    <div class="setup-logo"><h1>☁ CloudStream Web</h1><p>Extension Manager · powered by Groq AI</p></div>
+    <div id="config-step">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6">Einmalige Konfiguration — wird lokal gespeichert.</p>
+      <div class="form-group"><label class="form-label">GROQ API Key *</label><input class="form-input" id="cfg-groq" placeholder="gsk_..." type="password"><div class="form-hint">Kostenlos unter console.groq.com</div></div>
+      <div class="form-group"><label class="form-label">GitHub Token (optional)</label><input class="form-input" id="cfg-github" placeholder="ghp_..." type="password"><div class="form-hint">Erhöht Rate Limit von 60 auf 5000 Req/h</div></div>
+      <div class="fb-section">
+        <div class="fb-section-title">FIREBASE KONFIGURATION</div>
+        <div class="form-group"><label class="form-label">API Key</label><input class="form-input" id="cfg-fb-apikey" placeholder="AIza..."></div>
+        <div class="form-group"><label class="form-label">Auth Domain</label><input class="form-input" id="cfg-fb-domain" placeholder="projekt.firebaseapp.com"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Project ID</label><input class="form-input" id="cfg-fb-project" placeholder="mein-projekt"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Deine Admin E-Mail</label><input class="form-input" id="cfg-admin-email" placeholder="du@example.com" type="email"><div class="form-hint">Diese E-Mail erhält automatisch Admin-Rechte</div></div>
+      <button class="btn-primary" onclick="saveConfig()">Weiter →</button>
+    </div>
+    <div id="auth-step" style="display:none">
+      <div class="setup-tabs">
+        <button class="setup-tab active" id="tab-login" onclick="switchTab('login')">Anmelden</button>
+        <button class="setup-tab" id="tab-register" onclick="switchTab('register')">Registrieren</button>
+      </div>
+      <div id="login-form">
+        <div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="login-email" placeholder="deine@email.com" type="email"></div>
+        <div class="form-group"><label class="form-label">Passwort</label><input class="form-input" id="login-pw" placeholder="••••••••" type="password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn-primary" id="btn-login" onclick="doLogin()">Anmelden</button>
+        <button class="link-btn" onclick="doReset()">Passwort vergessen?</button>
+      </div>
+      <div id="register-form" style="display:none">
+        <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="reg-name" placeholder="Max Muster"></div>
+        <div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="reg-email" placeholder="deine@email.com" type="email"></div>
+        <div class="form-group"><label class="form-label">Passwort</label><input class="form-input" id="reg-pw" placeholder="••••••••" type="password"></div>
+        <button class="btn-primary" id="btn-register" onclick="doRegister()">Account erstellen</button>
+      </div>
+      <button class="link-btn" style="color:var(--text3);text-decoration:none;font-size:0.72rem;margin-top:1rem" onclick="backCfg()">← Konfiguration ändern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div id="denied-screen" class="screen hidden">
+  <div style="text-align:center;max-width:380px;padding:2rem">
+    <div style="font-size:3.5rem;margin-bottom:1rem">🚫</div>
+    <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:0.5rem">Kein Zugriff</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:0.4rem">Account nicht autorisiert:</p>
+    <p id="denied-email" style="color:var(--accent2);font-family:var(--mono);font-size:0.8rem;margin-bottom:1rem"></p>
+    <p id="denied-reason" style="color:var(--text3);font-size:0.78rem;margin-bottom:1.5rem">Wende dich an den Administrator für Zugriff.</p>
+    <button class="btn-primary" style="width:auto;padding:0.6rem 1.5rem" onclick="doLogout()">← Abmelden</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>☁ CS Web</h2><span>Extension Manager</span></div>
+    <div class="nav-group">
+      <div class="nav-label">Übersicht</div>
+      <button class="nav-item active" onclick="nav('dashboard')" data-p="dashboard"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span>Dashboard</span></button>
+      <button class="nav-item" onclick="nav('extensions')" data-p="extensions"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg><span>Extensions</span><span class="nav-badge" id="ext-badge">0</span></button>
+      <button class="nav-item" onclick="nav('feed')" data-p="feed"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><span>Activity Feed</span><span class="nav-badge red" id="upd-badge" style="display:none">!</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Entdecken</div>
+      <button class="nav-item" onclick="nav('search')" data-p="search"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span>GitHub Suche</span></button>
+      <button class="nav-item" onclick="nav('batch')" data-p="batch"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg><span>Top Repos</span></button>
+      <button class="nav-item" onclick="nav('ai')" data-p="ai"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><span>KI Assistent</span></button>
+    </div>
+    <div class="nav-group" id="admin-nav" style="display:none">
+      <div class="nav-label">Admin</div>
+      <button class="nav-item" onclick="nav('admin')" data-p="admin"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span>Benutzerverwaltung</span></button>
+      <button class="nav-item" onclick="nav('shared')" data-p="shared"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg><span>Geteilte Extensions</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">System</div>
+      <button class="nav-item" onclick="nav('settings')" data-p="settings"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Einstellungen</span></button>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-chip" onclick="doLogout()">
+        <div class="user-avatar" id="u-av">?</div>
+        <div class="user-info"><div class="user-name" id="u-name">Gast</div><div class="user-email" id="u-email">Abmelden</div><div class="admin-badge" id="u-admin" style="display:none">👑 Admin</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header"><div class="page-title">Dashboard</div><div class="page-sub">CloudStream Extension Manager</div></div>
+      <div class="stats-row">
+        <div class="stat-card a"><div class="stat-val" id="s-total">0</div><div class="stat-label">Meine Extensions</div></div>
+        <div class="stat-card g"><div class="stat-val" id="s-active">0</div><div class="stat-label">Aktiv</div></div>
+        <div class="stat-card y"><div class="stat-val" id="s-updates">0</div><div class="stat-label">Updates</div></div>
+        <div class="stat-card p"><div class="stat-val" id="s-shared">0</div><div class="stat-label">Geteilt</div></div>
+      </div>
+      <div class="ai-panel"><div class="ai-header"><div class="ai-dot"></div><div class="ai-title">🤖 Groq KI</div></div><div class="ai-output" id="dash-ai">Willkommen! Nutze "GitHub Suche" für neue Extensions oder "KI Assistent" für Fragen.</div></div>
+      <div class="section-label">Zuletzt hinzugefügt</div>
+      <div class="card-grid" id="recent-grid"><div class="empty-state" style="grid-column:1/-1"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg><h3>Noch keine Extensions</h3><p>Suche auf GitHub</p></div></div>
+    </div>
+
+    <!-- EXTENSIONS -->
+    <div class="page" id="page-extensions">
+      <div class="page-header"><div class="page-title">Meine Extensions</div><div class="page-sub">Alle installierten Extensions</div></div>
+      <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+        <div class="search-wrap" style="margin-bottom:0;flex:1;min-width:200px"><svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input class="search-input" placeholder="Filtern..." id="ext-filter" oninput="renderExtGrid()"></div>
+        <button class="btn btn-warn btn-sm" onclick="checkUpdates()" id="btn-upd">🔄 Updates prüfen</button>
+      </div>
+      <div class="sort-bar"><span class="sort-label">Sortieren:</span><button class="sort-btn active" onclick="setSort('date',this)">Datum</button><button class="sort-btn" onclick="setSort('name',this)">Name</button><button class="sort-btn" onclick="setSort('stars',this)">Stars</button><button class="sort-btn" onclick="setSort('rating',this)">Bewertung</button></div>
+      <div class="tag-filters"><button class="filter-tag active" onclick="setTag(this,'all')">Alle</button><button class="filter-tag" onclick="setTag(this,'movie')">🎬 Movie</button><button class="filter-tag" onclick="setTag(this,'tv')">📺 TV</button><button class="filter-tag" onclick="setTag(this,'anime')">🎌 Anime</button><button class="filter-tag" onclick="setTag(this,'german')">🇩🇪 German</button><button class="filter-tag" onclick="setTag(this,'multi')">🌐 Multi</button><button class="filter-tag" onclick="setTag(this,'sport')">⚽ Sport</button></div>
+      <div class="card-grid" id="ext-grid"></div>
+    </div>
+
+    <!-- FEED -->
+    <div class="page" id="page-feed">
+      <div class="page-header"><div class="page-title">Activity Feed</div><div class="page-sub">Commits & Updates deiner Extensions</div></div>
+      <button class="btn btn-accent btn-sm" onclick="loadFeed()" style="margin-bottom:1.5rem">🔄 Aktualisieren</button>
+      <div id="feed-loading" class="loading" style="display:none"><div class="spinner"></div> Lade Commits von GitHub...</div>
+      <div class="settings-card" id="feed-box"><div class="empty-state" style="padding:2rem"><h3>Extensions installieren</h3><p>um den Feed zu sehen</p></div></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="page" id="page-search">
+      <div class="page-header"><div class="page-title">GitHub Extension-Suche</div><div class="page-sub">KI durchsucht & bewertet Repositories</div></div>
+      <div class="search-wrap"><svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><input class="search-input" placeholder="z.B. 'deutsche Streaming Extension', 'anime provider'..." id="gh-input" onkeydown="if(event.key==='Enter')doSearch()"></div>
+      <div id="hist-row" style="margin-bottom:1rem;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center"></div>
+      <div class="search-actions">
+        <button class="btn btn-accent" onclick="doSearch()" id="btn-search">🔍 KI-Suche</button>
+        <button class="btn btn-ghost" onclick="preset('cloudstream extensions german')">🇩🇪 Deutsch</button>
+        <button class="btn btn-ghost" onclick="preset('cloudstream anime provider')">🎌 Anime</button>
+        <button class="btn btn-ghost" onclick="preset('cloudstream movie streaming')">🎬 Movie</button>
+        <button class="btn btn-ghost" onclick="preset('cloudstream plugin repository')">📦 Repos</button>
+      </div>
+      <div class="ai-panel" id="search-ai" style="display:none"><div class="ai-header"><div class="ai-dot"></div><div class="ai-title">🤖 Groq KI Analyse</div></div><div class="ai-output" id="search-ai-out"></div></div>
+      <div id="search-loading" class="loading" style="display:none"><div class="spinner"></div> Suche auf GitHub & KI analysiert...</div>
+      <div class="section-label" id="search-label" style="display:none">Ergebnisse</div>
+      <div class="repo-list" id="search-results"></div>
+    </div>
+
+    <!-- BATCH -->
+    <div class="page" id="page-batch">
+      <div class="page-header"><div class="page-title">Top CloudStream Repos</div><div class="page-sub">Bekannte Repos — 1-Klick installieren</div></div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="installAll()">⬇ Alle installieren</button>
+        <button class="btn btn-ghost" onclick="loadBatch()">🔄 Aktualisieren</button>
+      </div>
+      <div id="batch-loading" class="loading" style="display:none"><div class="spinner"></div> Lade von GitHub...</div>
+      <div class="repo-list" id="batch-list"><div class="empty-state"><h3>Klicke Aktualisieren</h3></div></div>
+    </div>
+
+    <!-- KI CHAT -->
+    <div class="page" id="page-ai">
+      <div class="page-header"><div class="page-title">KI Assistent</div><div class="page-sub">Groq-powered Chat für CloudStream</div></div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chat-msgs"><div class="chat-msg ai"><div class="chat-av ai">CS</div><div class="chat-bubble">Hallo! Ich bin dein CloudStream KI-Assistent. Wie kann ich helfen?</div></div></div>
+        <div class="chat-input-row"><input class="chat-input" id="chat-in" placeholder="Frage stellen..." onkeydown="if(event.key==='Enter')sendChat()"><button class="btn btn-accent" onclick="sendChat()" id="btn-chat">Senden</button></div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.7rem">
+          <button class="btn btn-ghost btn-sm" onclick="qChat('Beliebteste CloudStream Repos?')">Top Repos</button>
+          <button class="btn btn-ghost btn-sm" onclick="qChat('Wie füge ich ein Repository hinzu?')">Repo hinzufügen</button>
+          <button class="btn btn-ghost btn-sm" onclick="qChat('Deutsche Streaming-Quellen?')">Deutsch</button>
+          <button class="btn btn-ghost btn-sm" onclick="qChat('Empfehle mir Extensions basierend auf meinen installierten')">Empfehlungen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: USERS -->
+    <div class="page" id="page-admin">
+      <div class="page-header"><div class="page-title">Benutzerverwaltung</div><div class="page-sub">Zugriff verwalten — nur für Admins</div></div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="openAddUser()">+ Benutzer einladen</button>
+        <button class="btn btn-ghost" onclick="loadUsers()">🔄 Aktualisieren</button>
+      </div>
+      <div class="settings-section"><div class="settings-title">Ausstehende Anfragen</div><div class="settings-card" id="pending-list"><div style="padding:1rem;color:var(--text3);font-size:0.82rem">Keine</div></div></div>
+      <div class="settings-section"><div class="settings-title">Autorisierte Benutzer</div><div class="settings-card" id="users-list"><div style="padding:1rem;color:var(--text3);font-size:0.82rem">Lade...</div></div></div>
+    </div>
+
+    <!-- ADMIN: SHARED -->
+    <div class="page" id="page-shared">
+      <div class="page-header"><div class="page-title">Geteilte Extensions</div><div class="page-sub">Für alle Benutzer sichtbar</div></div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem">
+        <button class="btn btn-accent" onclick="openShare()">+ Extension teilen</button>
+        <button class="btn btn-ghost" onclick="loadShared()">🔄 Aktualisieren</button>
+      </div>
+      <div class="card-grid" id="shared-grid"><div class="empty-state" style="grid-column:1/-1"><h3>Keine geteilten Extensions</h3></div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-header"><div class="page-title">Einstellungen</div><div class="page-sub">API-Keys, Präferenzen & Daten</div></div>
+      <div class="settings-section"><div class="settings-title">API Konfiguration</div><div class="settings-card">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Groq API Key</div><div class="settings-row-desc" id="cfg-groq-status">-</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="editKey('groq')">Ändern</button></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">GitHub Token</div><div class="settings-row-desc" id="cfg-gh-status">Optional</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="editKey('github')">Ändern</button></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Firebase Projekt</div><div class="settings-row-desc" id="cfg-fb-status">-</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="backCfg()">Neu</button></div></div>
+      </div></div>
+      <div class="settings-section"><div class="settings-title">Account</div><div class="settings-card">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Passwort zurücksetzen</div><div class="settings-row-desc">Reset-Link per E-Mail</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="doReset()">Senden</button></div></div>
+      </div></div>
+      <div class="settings-section"><div class="settings-title">Präferenzen</div><div class="settings-card">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">KI Analyse bei Suche</div><div class="settings-row-desc">Groq analysiert Suchergebnisse automatisch</div></div><div class="settings-row-action"><button class="toggle on" id="tog-ai" onclick="togPref('ai',this)"></button></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Update-Check beim Start</div><div class="settings-row-desc">Automatisch auf neue Commits prüfen</div></div><div class="settings-row-action"><button class="toggle on" id="tog-upd" onclick="togPref('upd',this)"></button></div></div>
+      </div></div>
+      <div class="settings-section"><div class="settings-title">Daten</div><div class="settings-card">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Extensions exportieren</div><div class="settings-row-desc">JSON-Backup</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="exportExts()">Export</button></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Extensions importieren</div><div class="settings-row-desc">JSON laden</div></div><div class="settings-row-action"><button class="btn btn-ghost btn-sm" onclick="G('imp-file').click()">Import</button><input type="file" id="imp-file" accept=".json" style="display:none" onchange="importExts(this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Alle löschen</div><div class="settings-row-desc" style="color:var(--accent2)">Unwiderruflich</div></div><div class="settings-row-action"><button class="btn btn-danger btn-sm" onclick="clearAll()">Löschen</button></div></div>
+      </div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="M-overlay" onclick="closeM(event)"><div class="modal"><div class="modal-title" id="M-title"></div><div id="M-body"></div></div></div>
+
+<script>
+// STATE
+let db=null,auth=null,CU=null,isAdmin=false;
+let exts=[],sharedExts=[],chatHist=[],searchHist=[],batchData=[];
+let sortBy='date',activeTag='all',updCount=0;
+const GROQ_M='llama-3.3-70b-versatile';
+const TOP=[
+  {full_name:'recloudstream/phisher',description:'Multi-language streaming provider with many sources'},
+  {full_name:'hexated/cloudstream-extensions',description:'Various streaming extensions by hexated'},
+  {full_name:'KillerDogeEmpire/cloudstream-extensions',description:'Popular extension pack'},
+  {full_name:'Rowdyrunner/cloudstream-extensions-uk',description:'UK streaming sources'},
+  {full_name:'kerimmkirac/cs-extensions',description:'Mixed streaming extensions'},
+  {full_name:'jmir1/aniyomi-extensions',description:'Anime streaming sources'},
+  {full_name:'Blatzar/cloudstream-extensions',description:'Developer extension examples'},
+  {full_name:'Rushi2704/cloudstream-extensions',description:'Regional streaming sources'},
+  {full_name:'Strencher/cloudstream-extensions',description:'Various streaming plugins'},
+  {full_name:'darkdemon/cloudstream-extensions',description:'Additional streaming providers'},
+];
+
+// INIT
+window.onload=()=>{
+  const c=cfg();
+  if(c?.fbApiKey)initFB(c);
+  loadHist();renderHistChips();updateCfgStatus();
+};
+const G=id=>document.getElementById(id);
+const V=id=>(G(id)||{}).value?.trim()||'';
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function cfg(){try{return JSON.parse(localStorage.getItem('cs_cfg')||'null')}catch{return null}}
+function pref(k,d=true){const v=localStorage.getItem('cs_pref_'+k);return v===null?d:v==='true'}
+
+// CONFIG
+function saveConfig(){
+  const groq=V('cfg-groq'),github=V('cfg-github'),fbApiKey=V('cfg-fb-apikey'),fbDomain=V('cfg-fb-domain'),fbProject=V('cfg-fb-project'),adminEmail=V('cfg-admin-email');
+  if(!groq){toast('Groq API Key fehlt','error');return}
+  if(!fbApiKey||!fbDomain||!fbProject){toast('Firebase Konfiguration unvollständig','error');return}
+  localStorage.setItem('cs_cfg',JSON.stringify({groq,github,fbApiKey,fbDomain,fbProject,adminEmail}));
+  try{initFB(cfg());showAuthStep()}catch(e){toast('Firebase Fehler: '+e.message,'error')}
+}
+function initFB(c){
+  if(firebase.apps.length===0)firebase.initializeApp({apiKey:c.fbApiKey,authDomain:c.fbDomain,projectId:c.fbProject});
+  db=firebase.firestore();auth=firebase.auth();
+  auth.onAuthStateChanged(async u=>{if(u)await checkAccess(u);else showSetupScreen()});
+}
+
+// ACCESS CONTROL
+async function checkAccess(u){
+  CU=u;const c=cfg();
+  const isAdminEmail=c?.adminEmail&&u.email===c.adminEmail;
+  try{
+    const doc=await db.collection('users').doc(u.uid).get();
+    if(doc.exists){
+      const d=doc.data();
+      if(d.status==='denied'){showDenied(u.email,'Zugriff verweigert.');return}
+      if(d.status==='pending'){showDenied(u.email,'Account wartet auf Freigabe.');return}
+      isAdmin=d.role==='admin'||isAdminEmail;
+      enterApp(u);
+    } else {
+      const role=isAdminEmail?'admin':'user';
+      const status=isAdminEmail?'active':'pending';
+      await db.collection('users').doc(u.uid).set({email:u.email,name:u.displayName||'',role,status,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      if(isAdminEmail){isAdmin=true;enterApp(u)}else{showDenied(u.email,'Account wartet auf Freigabe durch den Admin.')}
+    }
+  }catch(e){isAdmin=isAdminEmail;enterApp(u)}
+}
+
+// AUTH
+function switchTab(t){
+  G('tab-login').classList.toggle('active',t==='login');G('tab-register').classList.toggle('active',t==='register');
+  G('login-form').style.display=t==='login'?'':'none';G('register-form').style.display=t==='register'?'':'none';
+}
+async function doLogin(){
+  const e=V('login-email'),p=V('login-pw');if(!e||!p){toast('E-Mail und Passwort eingeben','error');return}
+  const b=G('btn-login');b.disabled=true;b.textContent='Anmelden...';
+  try{await auth.signInWithEmailAndPassword(e,p)}
+  catch(err){toast(authErr(err),'error');b.disabled=false;b.textContent='Anmelden'}
+}
+async function doRegister(){
+  const n=V('reg-name'),e=V('reg-email'),p=V('reg-pw');if(!n||!e||!p){toast('Alle Felder ausfüllen','error');return}
+  const b=G('btn-register');b.disabled=true;b.textContent='Erstellen...';
+  try{const c=await auth.createUserWithEmailAndPassword(e,p);await c.user.updateProfile({displayName:n})}
+  catch(err){toast(authErr(err),'error');b.disabled=false;b.textContent='Account erstellen'}
+}
+async function doReset(){
+  let email=CU?.email||V('login-email');
+  if(!email){openM('Passwort zurücksetzen',`<div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="reset-em" type="email" placeholder="deine@email.com"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeM()">Abbrechen</button><button class="btn btn-accent" onclick="sendReset()">Senden</button></div>`);return}
+  try{await auth.sendPasswordResetEmail(email);toast('Reset-Link gesendet an '+email,'success')}catch(err){toast(authErr(err),'error')}
+}
+async function sendReset(){const e=V('reset-em');if(!e)return;try{await auth.sendPasswordResetEmail(e);toast('Reset-Link gesendet','success');closeM()}catch(err){toast(authErr(err),'error')}}
+async function doLogout(){
+  if(!confirm('Abmelden?'))return;
+  if(auth)await auth.signOut();
+  CU=null;isAdmin=false;exts=[];sharedExts=[];
+  G('app').style.display='none';showSetupScreen();
+}
+function authErr(e){const m={'auth/wrong-password':'Falsches Passwort','auth/user-not-found':'E-Mail nicht gefunden','auth/email-already-in-use':'E-Mail bereits registriert','auth/weak-password':'Passwort zu schwach','auth/invalid-email':'Ungültige E-Mail','auth/too-many-requests':'Zu viele Versuche'};return m[e.code]||e.message}
+
+// SCREENS
+function showSetupScreen(){G('setup-screen').classList.remove('hidden');G('denied-screen').classList.add('hidden');G('app').style.display='none'}
+function showAuthStep(){G('config-step').style.display='none';G('auth-step').style.display='block'}
+function backCfg(){G('auth-step').style.display='none';G('config-step').style.display='block'}
+function showDenied(email,reason){CU=null;if(auth)auth.signOut();G('setup-screen').classList.add('hidden');G('denied-screen').classList.remove('hidden');G('denied-email').textContent=email;G('denied-reason').textContent=reason}
+function enterApp(u){
+  G('setup-screen').classList.add('hidden');G('denied-screen').classList.add('hidden');G('app').style.display='flex';
+  const n=u.displayName||u.email||'User';
+  G('u-av').textContent=n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  G('u-name').textContent=n;G('u-email').textContent=u.email||'';
+  G('admin-nav').style.display=isAdmin?'':'none';G('u-admin').style.display=isAdmin?'inline-block':'none';
+  loadExts();loadShared();updateCfgStatus();
+  if(pref('upd'))setTimeout(()=>checkUpdates(true),2000);
+}
+
+// FIRESTORE — EXTENSIONS
+async function loadExts(){
+  if(!db||!CU)return;
+  try{const s=await db.collection('users').doc(CU.uid).collection('extensions').get();exts=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}
+  catch(e){toast('Lade-Fehler: '+e.message,'error');exts=[];renderAll()}
+}
+async function saveExt(ext){
+  if(!db||!CU){toast('Nicht angemeldet','error');return}
+  try{
+    const r=await db.collection('users').doc(CU.uid).collection('extensions').add({...ext,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    ext.id=r.id;exts.push(ext);renderAll();toast('Extension gespeichert!','success');
+  }catch(e){toast('Fehler: '+e.message,'error')}
+}
+async function delExt(id){
+  if(!confirm('Extension entfernen?'))return;
+  try{await db.collection('users').doc(CU.uid).collection('extensions').doc(id).delete();exts=exts.filter(e=>e.id!==id);renderAll();toast('Entfernt','info')}
+  catch(e){toast('Fehler: '+e.message,'error')}
+}
+async function toggleExt(id){
+  const e=exts.find(x=>x.id===id);if(!e)return;e.active=!e.active;
+  try{await db.collection('users').doc(CU.uid).collection('extensions').doc(id).update({active:e.active})}catch{}
+  renderAll();toast(e.active?'Aktiviert':'Deaktiviert','info');
+}
+async function rateExt(id,r){
+  const e=exts.find(x=>x.id===id);if(!e)return;e.userRating=r;
+  try{await db.collection('users').doc(CU.uid).collection('extensions').doc(id).update({userRating:r})}catch{}
+  renderAll();toast('Bewertung gespeichert','success');closeM();
+}
+
+// FIRESTORE — SHARED
+async function loadShared(){
+  if(!db)return;
+  try{const s=await db.collection('shared_extensions').get();sharedExts=s.docs.map(d=>({id:d.id,...d.data()}));renderStats();renderSharedGrid()}catch{}
+}
+async function shareExt(ext){
+  if(!isAdmin){toast('Nur Admins','error');return}
+  try{await db.collection('shared_extensions').add({...ext,sharedAt:firebase.firestore.FieldValue.serverTimestamp(),sharedBy:CU.email});await loadShared();toast('Geteilt!','success')}
+  catch(e){toast('Fehler: '+e.message,'error')}
+}
+async function unshare(id){
+  if(!confirm('Entfernen?'))return;
+  try{await db.collection('shared_extensions').doc(id).delete();sharedExts=sharedExts.filter(e=>e.id!==id);renderSharedGrid();renderStats();toast('Entfernt','info')}catch{}
+}
+function openShare(){
+  const opts=exts.map((e,i)=>`<option value="${i}">${esc(e.name)} — ${esc(e.repo||'')}</option>`).join('');
+  openM('Extension teilen',`<p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Wähle eine Extension zum Teilen mit allen Benutzern:</p><div class="form-group"><label class="form-label">Extension</label><select class="form-input" id="share-sel">${opts||'<option>Keine vorhanden</option>'}</select></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeM()">Abbrechen</button><button class="btn btn-accent" onclick="doShare()">Teilen</button></div>`);
+}
+function doShare(){const i=parseInt(V('share-sel'));if(isNaN(i)||!exts[i])return;const e={...exts[i]};delete e.id;shareExt(e);closeM()}
+
+// ADMIN — USERS
+async function loadUsers(){
+  if(!isAdmin||!db)return;
+  try{
+    const s=await db.collection('users').get();
+    const all=s.docs.map(d=>({id:d.id,...d.data()}));
+    const pending=all.filter(u=>u.status==='pending');
+    const rest=all.filter(u=>u.status!=='pending');
+    G('pending-list').innerHTML=pending.length?pending.map(u=>uRow(u,true)).join(''):'<div style="padding:1rem;color:var(--text3);font-size:0.82rem">Keine</div>';
+    G('users-list').innerHTML=rest.length?rest.map(u=>uRow(u,false)).join(''):'<div style="padding:1rem;color:var(--text3);font-size:0.82rem">Keine</div>';
+  }catch(e){toast('Fehler: '+e.message,'error')}
+}
+function uRow(u,isPending){
+  const init=(u.name||u.email||'?')[0].toUpperCase();
+  const rc=u.role==='admin'?'r-admin':u.status==='pending'?'r-pending':'r-user';
+  const rl=u.role==='admin'?'👑 Admin':u.status==='pending'?'⏳ Ausstehend':'User';
+  return `<div class="user-row"><div class="user-row-av">${esc(init)}</div><div class="user-row-info"><div class="user-row-email">${esc(u.email||'-')}</div><div class="user-row-meta">${esc(u.name||'')} · ${u.createdAt?new Date(u.createdAt.toDate()).toLocaleDateString('de-CH'):'-'}</div></div><span class="role-badge ${rc}">${rl}</span><div style="display:flex;gap:0.4rem;margin-left:0.8rem">
+    ${isPending?`<button class="btn btn-success btn-sm" onclick="approveUser('${u.id}','${esc(u.email||'')}')">✓</button><button class="btn btn-danger btn-sm" onclick="denyUser('${u.id}')">✕</button>`:''}
+    ${!isPending&&u.role!=='admin'?`<button class="btn btn-ghost btn-sm" onclick="toggleAdmin('${u.id}','${u.role||'user'}')">Rolle</button>`:''}
+    ${!isPending&&u.id!==CU?.uid?`<button class="btn btn-danger btn-sm" onclick="removeUser('${u.id}')">Entf.</button>`:''}
+  </div></div>`;
+}
+async function approveUser(uid,email){try{await db.collection('users').doc(uid).update({status:'active'});toast(email+' freigegeben!','success');loadUsers()}catch{toast('Fehler','error')}}
+async function denyUser(uid){try{await db.collection('users').doc(uid).update({status:'denied'});toast('Abgelehnt','info');loadUsers()}catch{toast('Fehler','error')}}
+async function removeUser(uid){if(!confirm('Entfernen?'))return;try{await db.collection('users').doc(uid).delete();loadUsers()}catch{toast('Fehler','error')}}
+async function toggleAdmin(uid,cur){const nr=cur==='admin'?'user':'admin';try{await db.collection('users').doc(uid).update({role:nr});toast('Rolle geändert','success');loadUsers()}catch{toast('Fehler','error')}}
+function openAddUser(){openM('Benutzer einladen',`<p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">E-Mail zur Whitelist hinzufügen:</p><div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" id="inv-email" type="email" placeholder="user@example.com"></div><div class="form-group"><label class="form-label">Rolle</label><select class="form-input" id="inv-role"><option value="user">User</option><option value="admin">Admin</option></select></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeM()">Abbrechen</button><button class="btn btn-accent" onclick="addUser()">Hinzufügen</button></div>`)}
+async function addUser(){
+  const email=V('inv-email'),role=V('inv-role');if(!email){toast('E-Mail eingeben','error');return}
+  try{await db.collection('whitelist').doc(email.toLowerCase()).set({email,role,addedBy:CU.email,addedAt:firebase.firestore.FieldValue.serverTimestamp()});toast(email+' hinzugefügt','success');closeM()}
+  catch(e){toast('Fehler: '+e.message,'error')}
+}
+
+// SEARCH
+function loadHist(){try{searchHist=JSON.parse(localStorage.getItem('cs_hist')||'[]')}catch{searchHist=[]}}
+function saveHist(q){searchHist=([q,...searchHist.filter(s=>s!==q)]).slice(0,8);localStorage.setItem('cs_hist',JSON.stringify(searchHist));renderHistChips()}
+function renderHistChips(){
+  const r=G('hist-row');if(!r)return;
+  r.innerHTML=searchHist.length?'<span style="font-size:0.72rem;color:var(--text3)">🕐</span>'+searchHist.map(q=>`<button class="history-chip" onclick="preset('${esc(q)}')">${esc(q)}</button>`).join('')+`<button class="btn btn-ghost btn-sm" onclick="clearHist()">✕</button>`:'';
+}
+function clearHist(){searchHist=[];localStorage.removeItem('cs_hist');renderHistChips()}
+function preset(q){G('gh-input').value=q;doSearch()}
+
+async function doSearch(){
+  const q=G('gh-input').value.trim();if(!q){toast('Suchbegriff eingeben','error');return}
+  const c=cfg();if(!c?.groq){toast('Groq API Key fehlt','error');return}
+  saveHist(q);
+  const btn=G('btn-search');btn.disabled=true;btn.textContent='⏳ Suche...';
+  G('search-loading').style.display='flex';G('search-results').innerHTML='';G('search-label').style.display='none';G('search-ai').style.display='none';
+  try{
+    const ghH={'Accept':'application/vnd.github+json'};if(c.github)ghH['Authorization']='Bearer '+c.github;
+    const r=await fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(q+' cloudstream in:name,description,readme')}&sort=stars&per_page=12`,{headers:ghH});
+    const d=await r.json();const repos=d.items||[];
+    if(!repos.length){G('search-results').innerHTML='<div class="empty-state"><h3>Keine Repos gefunden</h3><p>Andere Suchbegriffe versuchen</p></div>';return}
+    if(pref('ai')){
+      G('search-ai').style.display='block';G('search-ai-out').textContent='Analysiere...';
+      const sum=repos.slice(0,8).map(r=>`${r.full_name}: ${r.description||''} (⭐${r.stargazers_count})`).join('\n');
+      const a=await groqCall(c.groq,[{role:'system',content:'Du bist CloudStream-Experte. Analysiere kurz auf Deutsch.'},{role:'user',content:`Suchanfrage:"${q}"\n${sum}\n\nWelche sind am relevantesten?`}],400);
+      G('search-ai-out').textContent=a;
+    }
+    const scored=await scoreRepos(repos.slice(0,8),q,c.groq);
+    G('search-label').style.display='block';
+    G('search-results').innerHTML=scored.map(r=>repoCardHTML(r)).join('');
+    toast(`${repos.length} Repos gefunden`,'success');
+  }catch(e){toast('Fehler: '+e.message,'error')}
+  finally{btn.disabled=false;btn.textContent='🔍 KI-Suche';G('search-loading').style.display='none'}
+}
+
+async function scoreRepos(repos,q,key){
+  try{
+    const list=repos.map((r,i)=>`${i+1}. ${r.full_name}: ${r.description||''}`).join('\n');
+    const raw=await groqCall(key,[{role:'system',content:'NUR JSON: [{"index":1,"score":85,"tags":["movie","german"],"reason":"kurz"},...]. Kein anderer Text.'},{role:'user',content:`Suchanfrage:"${q}"\n${list}`}],600);
+    const sc=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    return repos.map((r,i)=>{const s=sc.find(x=>x.index===i+1)||{score:50,tags:[],reason:''};return{...r,aiScore:s.score,aiTags:s.tags,aiReason:s.reason}}).sort((a,b)=>b.aiScore-a.aiScore);
+  }catch{return repos.map(r=>({...r,aiScore:Math.min(99,Math.round(r.stargazers_count/20)),aiTags:[],aiReason:''}))}
+}
+
+function repoCardHTML(r){
+  const sc=r.aiScore||0,cls=sc>=70?'sh':sc>=40?'sm':'sl';
+  const inst=exts.some(e=>e.repo===r.full_name);
+  const data=JSON.stringify({fn:r.full_name,desc:r.description||'',stars:r.stargazers_count,tags:r.aiTags||[],lang:r.language||''}).replace(/"/g,'&quot;');
+  return `<div class="gh-card"><div style="display:flex;gap:0.8rem"><div style="flex:1"><div class="gh-title"><a href="https://github.com/${r.full_name}" target="_blank" style="color:inherit;text-decoration:none">📦 ${esc(r.full_name)}</a></div>${r.aiReason?`<div style="font-size:0.72rem;color:var(--accent3);margin-bottom:0.3rem">🤖 ${esc(r.aiReason)}</div>`:''}<div class="gh-desc">${esc(r.description||'Keine Beschreibung')}</div></div><span class="score ${cls}">KI ${sc}%</span></div><div class="gh-meta"><span>⭐${r.stargazers_count}</span><span>🍴${r.forks_count}</span><span>📝${r.language||'?'}</span><span>🔄${new Date(r.updated_at).toLocaleDateString('de-CH')}</span>${(r.aiTags||[]).map(t=>`<span class="ext-tag">${esc(t)}</span>`).join('')}<div style="margin-left:auto">${inst?'<span class="ext-badge ba">✓ Installiert</span>':`<button class="btn btn-success btn-sm" onclick='installRepo("${data}")'>+ Installieren</button>`}</div></div></div>`;
+}
+
+function installRepo(raw){
+  let d;try{d=JSON.parse(raw.replace(/&quot;/g,'"'))}catch{return}
+  saveExt({name:d.fn.split('/')[1],repo:d.fn,description:d.desc,stars:d.stars,tags:d.tags,language:d.lang,active:true,url:'https://github.com/'+d.fn});
+}
+
+// BATCH
+async function loadBatch(){
+  G('batch-loading').style.display='flex';G('batch-list').innerHTML='';
+  const c=cfg();const h={'Accept':'application/vnd.github+json'};if(c?.github)h['Authorization']='Bearer '+c.github;
+  try{
+    const rs=await Promise.allSettled(TOP.map(r=>fetch(`https://api.github.com/repos/${r.full_name}`,{headers:h}).then(x=>x.json())));
+    batchData=rs.map((r,i)=>r.status==='fulfilled'?r.value:{full_name:TOP[i].full_name,description:TOP[i].description,stargazers_count:0,forks_count:0,updated_at:new Date().toISOString(),language:''});
+    G('batch-list').innerHTML=batchData.map(r=>batchCardHTML(r)).join('');
+  }catch(e){toast('Fehler: '+e.message,'error')}
+  finally{G('batch-loading').style.display='none'}
+}
+function batchCardHTML(r){
+  const inst=exts.some(e=>e.repo===r.full_name);
+  const data=JSON.stringify({fn:r.full_name,desc:r.description||'',stars:r.stargazers_count||0,tags:[],lang:r.language||''}).replace(/"/g,'&quot;');
+  return `<div class="gh-card"><div style="display:flex;gap:0.8rem;align-items:flex-start"><div style="flex:1"><div class="gh-title"><a href="https://github.com/${r.full_name}" target="_blank" style="color:inherit;text-decoration:none">📦 ${esc(r.full_name)}</a></div><div class="gh-desc">${esc(r.description||'')}</div></div>${inst?'<span class="ext-badge ba">✓</span>':`<button class="btn btn-success btn-sm" onclick='installRepo("${data}")'>+ Inst.</button>`}</div><div class="gh-meta"><span>⭐${r.stargazers_count||0}</span><span>🍴${r.forks_count||0}</span><span>📝${r.language||'?'}</span></div></div>`;
+}
+async function installAll(){
+  if(!batchData.length){toast('Zuerst laden','warn');return}
+  const notInst=batchData.filter(r=>!exts.some(e=>e.repo===r.full_name));
+  if(!notInst.length){toast('Alle bereits installiert','info');return}
+  if(!confirm(`${notInst.length} Extensions installieren?`))return;
+  for(const r of notInst)await saveExt({name:r.full_name.split('/')[1],repo:r.full_name,description:r.description||'',stars:r.stargazers_count||0,tags:[],active:true,url:'https://github.com/'+r.full_name});
+  toast(`${notInst.length} installiert`,'success');
+  G('batch-list').innerHTML=batchData.map(r=>batchCardHTML(r)).join('');
+}
+
+// UPDATE CHECK
+async function checkUpdates(silent=false){
+  if(!exts.length){if(!silent)toast('Keine Extensions','info');return}
+  if(!silent){G('btn-upd').disabled=true;G('btn-upd').textContent='⏳ Prüfe...'}
+  const c=cfg();const h={'Accept':'application/vnd.github+json'};if(c?.github)h['Authorization']='Bearer '+c.github;
+  let found=0;
+  try{
+    const rs=await Promise.allSettled(exts.filter(e=>e.repo).map(e=>fetch(`https://api.github.com/repos/${e.repo}/commits?per_page=1`,{headers:h}).then(x=>x.json()).then(d=>({id:e.id,sha:d[0]?.sha,date:d[0]?.commit?.author?.date}))));
+    for(const r of rs){
+      if(r.status!=='fulfilled')continue;
+      const {id,sha,date}=r.value;const e=exts.find(x=>x.id===id);if(!e)continue;
+      const hasUpd=e.lastCommit&&e.lastCommit!==sha;
+      if(hasUpd)found++;
+      e.hasUpdate=hasUpd;e.latestCommit=sha;e.latestDate=date;
+      try{await db.collection('users').doc(CU.uid).collection('extensions').doc(id).update({hasUpdate:hasUpd,latestCommit:sha})}catch{}
+    }
+    updCount=found;renderAll();
+    if(!silent){
+      if(found>0){toast(`${found} Updates!`,'warn');G('upd-badge').style.display='';G('upd-badge').textContent=found}
+      else toast('Alles aktuell ✓','success');
+    }else if(found>0){G('upd-badge').style.display='';G('upd-badge').textContent=found;toast(`${found} Updates verfügbar`,'warn')}
+  }catch(e){if(!silent)toast('Fehler','error')}
+  finally{if(!silent){G('btn-upd').disabled=false;G('btn-upd').textContent='🔄 Updates prüfen'}}
+}
+async function markUpd(id){
+  const e=exts.find(x=>x.id===id);if(!e)return;
+  e.lastCommit=e.latestCommit;e.hasUpdate=false;
+  try{await db.collection('users').doc(CU.uid).collection('extensions').doc(id).update({lastCommit:e.latestCommit,hasUpdate:false})}catch{}
+  updCount=Math.max(0,updCount-1);renderAll();toast('Als aktuell markiert','success');
+}
+
+// FEED
+async function loadFeed(){
+  if(!exts.length){toast('Keine Extensions installiert','info');return}
+  G('feed-loading').style.display='flex';G('feed-box').innerHTML='';
+  const c=cfg();const h={'Accept':'application/vnd.github+json'};if(c?.github)h['Authorization']='Bearer '+c.github;
+  try{
+    const commits=[];
+    const rs=await Promise.allSettled(exts.filter(e=>e.repo).slice(0,10).map(e=>fetch(`https://api.github.com/repos/${e.repo}/commits?per_page=3`,{headers:h}).then(x=>x.json()).then(d=>(d||[]).map(cm=>({repo:e.repo,name:e.name,sha:cm.sha?.slice(0,7),msg:cm.commit?.message?.split('\n')[0]||'',author:cm.commit?.author?.name||'',date:cm.commit?.author?.date||''})))));
+    for(const r of rs)if(r.status==='fulfilled'&&Array.isArray(r.value))commits.push(...r.value);
+    commits.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(!commits.length){G('feed-box').innerHTML='<div class="empty-state" style="padding:2rem"><h3>Keine Commits</h3></div>';return}
+    G('feed-box').innerHTML='<div style="padding:0.5rem 1.2rem">'+commits.slice(0,30).map(cm=>`<div class="feed-item"><div class="feed-dot"></div><div class="feed-content"><div class="feed-title">${esc(cm.name)} · <span style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">${esc(cm.sha)}</span></div><div style="font-size:0.8rem;color:var(--text2);margin:0.2rem 0">${esc(cm.msg)}</div><div class="feed-meta">${esc(cm.author)} · ${cm.date?new Date(cm.date).toLocaleString('de-CH'):''} · <a href="https://github.com/${cm.repo}" target="_blank" style="color:var(--accent3)">${esc(cm.repo)}</a></div></div></div>`).join('')+'</div>';
+  }catch(e){toast('Feed-Fehler','error')}
+  finally{G('feed-loading').style.display='none'}
+}
+
+// KI CHAT
+async function sendChat(){
+  const inp=G('chat-in'),msg=inp.value.trim();if(!msg)return;inp.value='';
+  addBubble('user',msg);chatHist.push({role:'user',content:msg});
+  G('btn-chat').disabled=true;G('btn-chat').textContent='...';
+  const loading=addBubble('ai','⏳');
+  try{
+    const c=cfg();if(!c?.groq)throw new Error('Groq API Key fehlt');
+    const ctx=exts.length?'Installierte Extensions: '+exts.map(e=>e.name).join(', '):'Keine Extensions.';
+    const r=await groqCall(c.groq,[{role:'system',content:`Du bist CloudStream-KI-Assistent. Antworte auf Deutsch, klar und hilfreich. ${ctx}`},...chatHist.slice(-8)],600);
+    loading.querySelector('.chat-bubble').textContent=r;chatHist.push({role:'assistant',content:r});
+  }catch(e){loading.querySelector('.chat-bubble').textContent='Fehler: '+e.message}
+  finally{G('btn-chat').disabled=false;G('btn-chat').textContent='Senden'}
+}
+function qChat(m){G('chat-in').value=m;sendChat()}
+function addBubble(role,text){
+  const c=G('chat-msgs'),d=document.createElement('div');
+  d.className='chat-msg '+role;
+  d.innerHTML=`<div class="chat-av ${role}">${role==='ai'?'CS':'👤'}</div><div class="chat-bubble">${esc(text)}</div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+}
+
+// GROQ
+async function groqCall(key,messages,maxTok=600){
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:GROQ_M,messages,max_tokens:maxTok,temperature:0.4})});
+  const d=await r.json();if(d.error)throw new Error(d.error.message);
+  return d.choices?.[0]?.message?.content||'';
+}
+
+// RENDER
+function renderAll(){renderStats();renderExtGrid();renderRecent();renderSharedGrid();G('ext-badge').textContent=exts.length}
+function renderStats(){G('s-total').textContent=exts.length;G('s-active').textContent=exts.filter(e=>e.active!==false).length;G('s-updates').textContent=exts.filter(e=>e.hasUpdate).length;G('s-shared').textContent=sharedExts.length}
+function renderExtGrid(){
+  const grid=G('ext-grid');const q=G('ext-filter')?.value.toLowerCase()||'';
+  let list=[...exts];
+  if(activeTag!=='all')list=list.filter(e=>(e.tags||[]).includes(activeTag));
+  if(q)list=list.filter(e=>(e.name+e.description+e.repo).toLowerCase().includes(q));
+  if(sortBy==='name')list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if(sortBy==='stars')list.sort((a,b)=>(b.stars||0)-(a.stars||0));
+  else if(sortBy==='rating')list.sort((a,b)=>(b.userRating||0)-(a.userRating||0));
+  grid.innerHTML=list.length?list.map(e=>extCard(e)).join(''):`<div class="empty-state" style="grid-column:1/-1"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg><h3>Keine Extensions</h3><p>Suche auf GitHub oder ändere den Filter</p></div>`;
+}
+function renderRecent(){
+  const grid=G('recent-grid');const list=[...exts].slice(-4).reverse();
+  grid.innerHTML=list.length?list.map(e=>extCard(e)).join(''):`<div class="empty-state" style="grid-column:1/-1"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg><h3>Noch keine Extensions</h3><p>Suche auf GitHub</p></div>`;
+}
+function renderSharedGrid(){
+  const grid=G('shared-grid');if(!grid)return;
+  grid.innerHTML=sharedExts.length?sharedExts.map(e=>sharedCard(e)).join(''):`<div class="empty-state" style="grid-column:1/-1"><h3>Keine geteilten Extensions</h3></div>`;
+}
+
+function extCard(e){
+  const g=strCol(e.name||'');const active=e.active!==false;
+  const stars='★'.repeat(e.userRating||0)+'☆'.repeat(5-(e.userRating||0));
+  return `<div class="ext-card">
+    <div class="ext-header"><div class="ext-icon" style="background:${g}">${(e.name||'?')[0].toUpperCase()}</div><div class="ext-meta"><div class="ext-name">${esc(e.name)}</div><div class="ext-repo">📦 ${esc(e.repo||'')}</div></div><span class="ext-badge ${active?'ba':'bi'}">${active?'Aktiv':'Inaktiv'}</span></div>
+    <div class="ext-desc">${esc(e.description||'Keine Beschreibung')}</div>
+    <div class="ext-tags">${(e.tags||[]).map(t=>`<span class="ext-tag">${esc(t)}</span>`).join('')}</div>
+    <div class="ext-footer">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <span class="ext-stars">⭐${e.stars||0}</span>
+        ${e.hasUpdate?`<span class="update-pill" onclick="markUpd('${e.id}')">⬆ Update</span>`:''}
+        <span style="font-size:0.7rem;color:#ffc107;cursor:pointer" onclick="openRate('${e.id}')" title="Bewerten">${stars}</span>
+      </div>
+      <div class="ext-actions">
+        ${e.url?`<a href="${esc(e.url)}" target="_blank" class="btn btn-ghost btn-sm">GH</a>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="toggleExt('${e.id}')">${active?'Deakt.':'Akt.'}</button>
+        <button class="btn btn-danger btn-sm" onclick="delExt('${e.id}')">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sharedCard(e){
+  const g=strCol(e.name||'');const inst=exts.some(x=>x.repo===e.repo);
+  const data=JSON.stringify({fn:e.repo||'',desc:e.description||'',stars:e.stars||0,tags:e.tags||[],lang:''}).replace(/"/g,'&quot;');
+  return `<div class="ext-card shared"><div class="ext-header"><div class="ext-icon" style="background:${g}">${(e.name||'?')[0].toUpperCase()}</div><div class="ext-meta"><div class="ext-name">${esc(e.name)}</div><div class="ext-repo">📦 ${esc(e.repo||'')}</div></div><span class="ext-badge bs">Geteilt</span></div><div class="ext-desc">${esc(e.description||'')}</div><div class="ext-footer"><span class="ext-stars">von ${esc(e.sharedBy||'Admin')}</span><div class="ext-actions">${inst?'<span class="ext-badge ba">✓</span>':`<button class="btn btn-success btn-sm" onclick='installRepo("${data}")'>+ Inst.</button>`}${isAdmin?`<button class="btn btn-danger btn-sm" onclick="unshare('${e.id}')">✕</button>`:''}</div></div></div>`;
+}
+
+function openRate(id){
+  const e=exts.find(x=>x.id===id);if(!e)return;
+  openM(`${esc(e.name)} bewerten`,`<p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Wie nützlich ist diese Extension?</p><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.5rem">${[1,2,3,4,5].map(i=>`<button class="btn btn-ghost" style="font-size:1.4rem;padding:0.5rem 0.8rem" onclick="rateExt('${id}',${i})">${i<=(e.userRating||0)?'★':'☆'}</button>`).join('')}</div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeM()">Abbrechen</button></div>`);
+}
+
+// NAV
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  G('page-'+page)?.classList.add('active');
+  document.querySelector(`[data-p="${page}"]`)?.classList.add('active');
+  if(page==='feed')loadFeed();
+  if(page==='admin')loadUsers();
+  if(page==='batch'&&!batchData.length)loadBatch();
+}
+function setTag(btn,tag){document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeTag=tag;renderExtGrid()}
+function setSort(by,btn){document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');sortBy=by;renderExtGrid()}
+
+// SETTINGS
+function updateCfgStatus(){
+  const c=cfg();
+  G('cfg-groq-status').textContent=c?.groq?'✓ Gesetzt ('+c.groq.slice(0,8)+'...)':'Nicht gesetzt';
+  G('cfg-gh-status').textContent=c?.github?'✓ Gesetzt ('+c.github.slice(0,8)+'...)':'Optional — nicht gesetzt';
+  G('cfg-fb-status').textContent=c?.fbProject?'✓ Projekt: '+c.fbProject:'-';
+}
+function editKey(type){
+  const c=cfg()||{};
+  openM(type==='groq'?'Groq API Key':'GitHub Token',`<div class="form-group"><label class="form-label">${type==='groq'?'Groq API Key':'GitHub Token'}</label><input class="form-input" id="edit-key" type="password" value="${esc(type==='groq'?c.groq||'':c.github||'')}"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeM()">Abbrechen</button><button class="btn btn-accent" onclick="saveKey('${type}')">Speichern</button></div>`);
+}
+function saveKey(type){const c=cfg()||{};const v=V('edit-key');if(type==='groq')c.groq=v;else c.github=v;localStorage.setItem('cs_cfg',JSON.stringify(c));updateCfgStatus();closeM();toast('Gespeichert!','success')}
+function togPref(k,btn){btn.classList.toggle('on');localStorage.setItem('cs_pref_'+k,btn.classList.contains('on'))}
+function exportExts(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(exts,null,2)],{type:'application/json'}));a.download='cloudstream-extensions.json';a.click();toast('Exportiert','success')}
+function importExts(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=async e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){for(const x of d)await saveExt(x);toast(d.length+' importiert','success')}}catch{toast('Import fehlgeschlagen','error')}};r.readAsText(f)}
+async function clearAll(){
+  if(!confirm('Wirklich alle löschen?'))return;
+  try{const s=await db.collection('users').doc(CU.uid).collection('extensions').get();const b=db.batch();s.docs.forEach(d=>b.delete(d.ref));await b.commit();exts=[];renderAll();toast('Gelöscht','info')}catch{toast('Fehler','error')}
+}
+
+// MODAL
+function openM(title,body){G('M-title').textContent=title;G('M-body').innerHTML=body;G('M-overlay').classList.remove('hidden')}
+function closeM(e){if(!e||e.target===G('M-overlay'))G('M-overlay').classList.add('hidden')}
+
+// TOAST
+function toast(msg,type='info'){
+  const ic={success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
+  const c=G('TC'),t=document.createElement('div');
+  t.className='toast '+type;t.innerHTML=`<span>${ic[type]||'ℹ️'}</span><span>${esc(msg)}</span>`;
+  c.appendChild(t);setTimeout(()=>t.remove(),3500);
+}
+
+// UTILS
+function strCol(s){let h=0;for(const c of s)h=c.charCodeAt(0)+((h<<5)-h);const g=['linear-gradient(135deg,#6c63ff,#8b83ff)','linear-gradient(135deg,#ff6584,#ff8e53)','linear-gradient(135deg,#43e97b,#38f9d7)','linear-gradient(135deg,#fa709a,#fee140)','linear-gradient(135deg,#4facfe,#00f2fe)','linear-gradient(135deg,#a18cd1,#fbc2eb)'];return g[Math.abs(h)%g.length]}
+</script>
+</body>
+</html>
